@@ -17,7 +17,7 @@ body{
   height:100vh;
   margin:0;
   transition:background 0.6s;
-  -webkit-user-select:none; /* блокуємо виділення тексту на мобільних */
+  -webkit-user-select:none; 
   user-select:none;
 }
 
@@ -157,7 +157,7 @@ for (let i = 0; i < 25; i++) {
 }
 
 // змінні
-let mode = 0
+let mode = 0 // 0 = Рандомний, 1 = Утримання
 let isRunning = false
 let hold = false
 let value = 0
@@ -187,7 +187,6 @@ function updateBars(val) {
     }
   })
 
-  // 🔴 червоне для будь-якого режиму
   if (val >= 90) {
     num.classList.add("dangerNumber")
     document.body.classList.add("flash-danger")
@@ -196,7 +195,6 @@ function updateBars(val) {
     document.body.classList.remove("flash-danger")
   }
 
-  // 📝 повідомлення якщо менше 20 у утриманні або на початку
   if (val < 20 && mode === 1) {
     msg.innerText = "Ти не тискуєш"
   }
@@ -204,8 +202,7 @@ function updateBars(val) {
 
 // перемикання режиму
 modeBtn.onclick = function () {
-  mode++
-  if (mode > 1) mode = 0
+  mode = mode === 0 ? 1 : 0
   resetEffects()
   value = 0
   num.innerText = 0
@@ -214,9 +211,9 @@ modeBtn.onclick = function () {
   modeBtn.innerText = mode === 0 ? "Рандомний" : "Утримання"
 }
 
-// Рандом
+// Рандомний режим
 function randomMode() {
-  if (isRunning) return
+  if (isRunning || mode !== 0) return
   isRunning = true
   resetEffects()
   msg.innerText = "Вимірюється..."
@@ -250,31 +247,35 @@ setInterval(() => {
   num.innerText = value
   updateBars(value)
 
-  // повідомлення для утримання
   if (value < 20) msg.innerText = "Ти не тискуєш"
   else if (value < 70) msg.innerText = "Нормальний 👍"
   else if (value < 90) msg.innerText = "Потужний 💪"
   else msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
 }, 50)
 
-// події для ПК
+// Події для утримання на ПК
 btn.addEventListener("mousedown", () => { if (mode === 1) hold = true })
 btn.addEventListener("mouseup", () => { hold = false })
 btn.addEventListener("mouseleave", () => { hold = false })
-btn.addEventListener("click", () => { if (mode === 0) randomMode() })
 
-// події для мобільних пристроїв
-btn.addEventListener("touchstart", (e) => {
+// Події для утримання на мобільних
+btn.addEventListener("touchstart", (e) => { 
   e.preventDefault()
-  if (mode === 1) hold = true
+  if (mode === 1) hold = true 
 })
-btn.addEventListener("touchend", (e) => {
+btn.addEventListener("touchend", (e) => { 
   e.preventDefault()
-  hold = false
+  hold = false 
 })
-btn.addEventListener("touchcancel", (e) => {
+btn.addEventListener("touchcancel", (e) => { 
   e.preventDefault()
-  hold = false
+  hold = false 
+})
+
+// Подія для запуску Рандомного режиму
+btn.addEventListener("click", () => { randomMode() })
+btn.addEventListener("touchend", (e) => { 
+  if (mode === 0) randomMode()
 })
 </script>
 </body>
