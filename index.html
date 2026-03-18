@@ -7,297 +7,259 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-
 body{
-background:linear-gradient(180deg,#02162b,#000814);
-color:white;
-font-family:'Orbitron',sans-serif;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
-transition:background 0.6s;
+  background:linear-gradient(180deg,#02162b,#000814);
+  color:white;
+  font-family:'Orbitron',sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  margin:0;
+  transition:background 0.6s;
 }
 
 .panel{
-background:#0b0f16;
-border-radius:25px;
-padding:30px;
-width:360px;
-box-shadow:0 0 40px rgba(0,0,0,0.8);
-border:1px solid #2b2b2b;
+  background:#0b0f16;
+  border-radius:25px;
+  padding:30px;
+  width:360px;
+  box-shadow:0 0 40px rgba(0,0,0,0.8);
+  border:1px solid #2b2b2b;
 }
 
 .title{
-font-size:28px;
-text-align:center;
-color:#8ff5ff;
-text-shadow:0 0 10px #00eaff;
-margin-bottom:10px;
+  font-size:28px;
+  text-align:center;
+  color:#8ff5ff;
+  text-shadow:0 0 10px #00eaff;
+  margin-bottom:10px;
 }
 
 .subtitle{
-text-align:center;
-color:#aaa;
-margin-bottom:25px;
+  text-align:center;
+  color:#aaa;
+  margin-bottom:25px;
 }
 
 .scaleBox{
-background:#05070a;
-border-radius:15px;
-padding:20px;
-border:1px solid #333;
-cursor:pointer;
-transition:0.2s;
-}
-
-.scaleBox.disabled{
-opacity:0.5;
-cursor:not-allowed;
+  background:#05070a;
+  border-radius:15px;
+  padding:20px;
+  border:1px solid #333;
+  cursor:pointer;
 }
 
 .scale{
-display:flex;
-gap:5px;
-justify-content:center;
-margin:15px 0;
+  display:flex;
+  gap:5px;
+  justify-content:center;
+  margin:15px 0;
 }
 
 .bar{
-width:8px;
-height:35px;
-background:#222;
-border-radius:5px;
-transition:0.2s;
-}
-
-.minmax{
-display:flex;
-justify-content:space-between;
-color:#666;
-font-size:12px;
+  width:8px;
+  height:35px;
+  background:#222;
+  border-radius:5px;
+  transition:0.2s;
 }
 
 .bottom{
-display:flex;
-gap:15px;
-margin-top:25px;
+  display:flex;
+  gap:15px;
+  margin-top:25px;
 }
 
 .displayBox{
-flex:1;
-background:#05070a;
-border-radius:15px;
-padding:15px;
-border:1px solid #333;
-}
-
-.displayTitle{
-color:#aaa;
-font-size:13px;
+  flex:1;
+  background:#05070a;
+  border-radius:15px;
+  padding:15px;
+  border:1px solid #333;
 }
 
 .number{
-font-size:52px;
-text-align:center;
-margin-top:10px;
-text-shadow:0 0 15px orange;
-transition:0.3s;
-}
-
-.modeBox{
-width:120px;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-}
-
-.modeTitle{
-color:#aaa;
-margin-bottom:10px;
+  font-size:52px;
+  text-align:center;
+  margin-top:10px;
+  text-shadow:0 0 15px orange;
 }
 
 .modeBtn{
-padding:14px 18px;
-border-radius:30px;
-border:none;
-font-size:16px;
-background:#00eaff;
-color:black;
-box-shadow:0 0 15px #00eaff;
+  padding:14px 18px;
+  border-radius:30px;
+  border:none;
+  font-size:16px;
+  background:#00eaff;
+  color:black;
+  box-shadow:0 0 15px #00eaff;
+  cursor:pointer;
 }
 
 .message{
-text-align:center;
-margin-top:15px;
-color:#ccc;
+  text-align:center;
+  margin-top:15px;
+  color:#ccc;
 }
 
 .flash-danger {
-animation: flashDanger 1s infinite;
+  animation: flashDanger 1s infinite;
 }
 
 @keyframes flashDanger {
-0% { background: linear-gradient(180deg,#02162b,#000814); }
-50% { background: linear-gradient(180deg,#5a0000,#ff0000); }
-100% { background: linear-gradient(180deg,#02162b,#000814); }
+  0% { background: linear-gradient(180deg,#02162b,#000814); }
+  50% { background: linear-gradient(180deg,#5a0000,#ff0000); }
+  100% { background: linear-gradient(180deg,#02162b,#000814); }
 }
 
 .dangerNumber{
-color:#ff2a2a;
-text-shadow:0 0 20px red;
+  color:#ff2a2a;
+  text-shadow:0 0 20px red;
 }
-
 </style>
 </head>
 
 <body>
-
 <div class="panel">
 
-<div class="title">🇺🇦 ТИСКОМЕТР</div>
-<div class="subtitle">TM-v1.0.0 ТИСК 100 MAX</div>
+  <div class="title">🇺🇦 ТИСКОМЕТР</div>
+  <div class="subtitle">TM-v2.3 FINAL</div>
 
-<div class="scaleBox" id="btn" onclick="start()">
+  <div class="scaleBox" id="btn">
+    <div>ШКАЛА ТИСКУ</div>
+    <div class="scale" id="scale"></div>
+  </div>
 
-<div>ШКАЛА ТИСКУ</div>
+  <div class="bottom">
+    <div class="displayBox">
+      <div class="number" id="num">0</div>
+    </div>
 
-<div class="scale" id="scale"></div>
+    <button class="modeBtn" id="modeBtn">Рандомний</button>
+  </div>
 
-<div class="minmax">
-<span>MIN</span>
-<span>MAX</span>
-</div>
-
-</div>
-
-<div class="bottom">
-
-<div class="displayBox">
-<div class="displayTitle">ПОКАЗНИК ТИСКУ</div>
-<div class="number" id="num">0</div>
-</div>
-
-<div class="modeBox">
-<div class="modeTitle">РЕЖИМ</div>
-<button class="modeBtn">Рандомний</button>
-</div>
-
-</div>
-
-<div class="message" id="msg">
-Натисни на шкалу щоб виміряти
-</div>
+  <div class="message" id="msg">
+    Натисни або утримуй
+  </div>
 
 </div>
 
 <script>
-
+// створення шкали
 let scale=document.getElementById("scale")
-
 for(let i=0;i<25;i++){
-let bar=document.createElement("div")
-bar.className="bar"
-scale.appendChild(bar)
+  let bar=document.createElement("div")
+  bar.className="bar"
+  scale.appendChild(bar)
 }
 
+// змінні
+let mode=0
 let isRunning=false
-
-function tick(){
-let ctx=new AudioContext()
-let osc=ctx.createOscillator()
-osc.frequency.value=250
-osc.connect(ctx.destination)
-osc.start()
-setTimeout(()=>osc.stop(),60)
-}
-
-function boom(){
-let ctx=new AudioContext()
-let osc=ctx.createOscillator()
-osc.frequency.value=80
-osc.connect(ctx.destination)
-osc.start()
-setTimeout(()=>osc.stop(),200)
-}
-
-function start(){
-
-if(isRunning) return
-isRunning=true
+let hold=false
+let value=0
 
 let btn=document.getElementById("btn")
-btn.classList.add("disabled")
-
-document.body.classList.remove("flash-danger")
-
 let num=document.getElementById("num")
-num.classList.remove("dangerNumber")
-
-let bars=document.querySelectorAll(".bar")
 let msg=document.getElementById("msg")
+let modeBtn=document.getElementById("modeBtn")
 
-msg.innerText="Вимірюється..."
-
-let i=0
-let result=0
-
-let interval=setInterval(()=>{
-
-result=Math.floor(Math.random()*100)
-num.innerText=result
-
-tick()
-
-bars.forEach((b,index)=>{
-
-if(index<result/4){
-
-if(index<8) b.style.background="#35ff5c"
-else if(index<16) b.style.background="#f6ff35"
-else if(index<22) b.style.background="#ff9d00"
-else b.style.background="#ff2a2a"
-
-}else{
-b.style.background="#222"
+// очищення ефектів
+function resetEffects(){
+  document.body.classList.remove("flash-danger")
+  num.classList.remove("dangerNumber")
 }
 
-})
+// оновлення шкали і ефектів
+function updateBars(val){
+  let bars=document.querySelectorAll(".bar")
+  bars.forEach((b,index)=>{
+    if(index<val/4){
+      if(index<8) b.style.background="#35ff5c"
+      else if(index<16) b.style.background="#f6ff35"
+      else if(index<22) b.style.background="#ff9d00"
+      else b.style.background="#ff2a2a"
+    }else{
+      b.style.background="#222"
+    }
+  })
 
-i++
+  // 🔴 червоне для будь-якого режиму
+  if(val>=90){
+    num.classList.add("dangerNumber")
+    document.body.classList.add("flash-danger")
+  }else{
+    num.classList.remove("dangerNumber")
+    document.body.classList.remove("flash-danger")
+  }
 
-if(i>20){
-
-clearInterval(interval)
-boom()
-
-if(result<=30){
-msg.innerText="Слабенький тиск 😌"
-}
-else if(result<=70){
-msg.innerText="Нормальний тиск 👍"
-}
-else if(result<90){
-msg.innerText="Потужний тиск 💪"
-}
-else{
-msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
-num.classList.add("dangerNumber")
-document.body.classList.add("flash-danger")
-}
-
-isRunning=false
-btn.classList.remove("disabled")
-
-}
-
-},120)
-
+  // 📝 повідомлення якщо менше 20 у утриманні або на початку
+  if(val<20 && mode===1){
+    msg.innerText="Ти не тискуєш"
+  }
 }
 
+// перемикання режиму
+modeBtn.onclick=function(){
+  mode++
+  if(mode>1) mode=0
+  resetEffects()
+  value=0
+  num.innerText=0
+  updateBars(0)
+  msg.innerText="Режим змінено"
+  modeBtn.innerText = mode===0 ? "Рандомний" : "Утримання"
+}
+
+// Рандом
+function randomMode(){
+  if(isRunning) return
+  isRunning=true
+  resetEffects()
+  msg.innerText="Вимірюється..."
+  let i=0
+  let result=0
+
+  let interval=setInterval(()=>{
+    result=Math.floor(Math.random()*100)
+    value=result
+    num.innerText=result
+    updateBars(result)
+    i++
+    if(i>20){
+      clearInterval(interval)
+      if(result>=90) msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
+      else if(result>=70) msg.innerText="Потужний 💪"
+      else if(result<20) msg.innerText="Ти не тискуєш"
+      else msg.innerText="Нормальний 👍"
+      isRunning=false
+    }
+  },120)
+}
+
+// Утримання
+setInterval(()=>{
+  if(mode!==1) return
+  if(hold) value+=2
+  else value-=1
+  if(value<0) value=0
+  if(value>100) value=100
+  num.innerText=value
+  updateBars(value)
+
+  // повідомлення для утримання
+  if(value<20) msg.innerText="Ти не тискуєш"
+  else if(value<70) msg.innerText="Нормальний 👍"
+  else if(value<90) msg.innerText="Потужний 💪"
+  else msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
+},50)
+
+// події
+btn.addEventListener("mousedown",()=>{if(mode===1) hold=true})
+btn.addEventListener("mouseup",()=>{hold=false})
+btn.addEventListener("mouseleave",()=>{hold=false})
+btn.addEventListener("click",()=>{if(mode===0) randomMode()})
 </script>
-
 </body>
 </html>
