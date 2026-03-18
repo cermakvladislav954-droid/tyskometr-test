@@ -17,6 +17,8 @@ body{
   height:100vh;
   margin:0;
   transition:background 0.6s;
+  -webkit-user-select:none; /* блокуємо виділення тексту на мобільних */
+  user-select:none;
 }
 
 .panel{
@@ -147,119 +149,133 @@ body{
 
 <script>
 // створення шкали
-let scale=document.getElementById("scale")
-for(let i=0;i<25;i++){
-  let bar=document.createElement("div")
-  bar.className="bar"
+let scale = document.getElementById("scale")
+for (let i = 0; i < 25; i++) {
+  let bar = document.createElement("div")
+  bar.className = "bar"
   scale.appendChild(bar)
 }
 
 // змінні
-let mode=0
-let isRunning=false
-let hold=false
-let value=0
+let mode = 0
+let isRunning = false
+let hold = false
+let value = 0
 
-let btn=document.getElementById("btn")
-let num=document.getElementById("num")
-let msg=document.getElementById("msg")
-let modeBtn=document.getElementById("modeBtn")
+let btn = document.getElementById("btn")
+let num = document.getElementById("num")
+let msg = document.getElementById("msg")
+let modeBtn = document.getElementById("modeBtn")
 
 // очищення ефектів
-function resetEffects(){
+function resetEffects() {
   document.body.classList.remove("flash-danger")
   num.classList.remove("dangerNumber")
 }
 
 // оновлення шкали і ефектів
-function updateBars(val){
-  let bars=document.querySelectorAll(".bar")
-  bars.forEach((b,index)=>{
-    if(index<val/4){
-      if(index<8) b.style.background="#35ff5c"
-      else if(index<16) b.style.background="#f6ff35"
-      else if(index<22) b.style.background="#ff9d00"
-      else b.style.background="#ff2a2a"
-    }else{
-      b.style.background="#222"
+function updateBars(val) {
+  let bars = document.querySelectorAll(".bar")
+  bars.forEach((b, index) => {
+    if (index < val / 4) {
+      if (index < 8) b.style.background = "#35ff5c"
+      else if (index < 16) b.style.background = "#f6ff35"
+      else if (index < 22) b.style.background = "#ff9d00"
+      else b.style.background = "#ff2a2a"
+    } else {
+      b.style.background = "#222"
     }
   })
 
   // 🔴 червоне для будь-якого режиму
-  if(val>=90){
+  if (val >= 90) {
     num.classList.add("dangerNumber")
     document.body.classList.add("flash-danger")
-  }else{
+  } else {
     num.classList.remove("dangerNumber")
     document.body.classList.remove("flash-danger")
   }
 
   // 📝 повідомлення якщо менше 20 у утриманні або на початку
-  if(val<20 && mode===1){
-    msg.innerText="Ти не тискуєш"
+  if (val < 20 && mode === 1) {
+    msg.innerText = "Ти не тискуєш"
   }
 }
 
 // перемикання режиму
-modeBtn.onclick=function(){
+modeBtn.onclick = function () {
   mode++
-  if(mode>1) mode=0
+  if (mode > 1) mode = 0
   resetEffects()
-  value=0
-  num.innerText=0
+  value = 0
+  num.innerText = 0
   updateBars(0)
-  msg.innerText="Режим змінено"
-  modeBtn.innerText = mode===0 ? "Рандомний" : "Утримання"
+  msg.innerText = "Режим змінено"
+  modeBtn.innerText = mode === 0 ? "Рандомний" : "Утримання"
 }
 
 // Рандом
-function randomMode(){
-  if(isRunning) return
-  isRunning=true
+function randomMode() {
+  if (isRunning) return
+  isRunning = true
   resetEffects()
-  msg.innerText="Вимірюється..."
-  let i=0
-  let result=0
+  msg.innerText = "Вимірюється..."
+  let i = 0
+  let result = 0
 
-  let interval=setInterval(()=>{
-    result=Math.floor(Math.random()*100)
-    value=result
-    num.innerText=result
+  let interval = setInterval(() => {
+    result = Math.floor(Math.random() * 100)
+    value = result
+    num.innerText = result
     updateBars(result)
     i++
-    if(i>20){
+    if (i > 20) {
       clearInterval(interval)
-      if(result>=90) msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
-      else if(result>=70) msg.innerText="Потужний 💪"
-      else if(result<20) msg.innerText="Ти не тискуєш"
-      else msg.innerText="Нормальний 👍"
-      isRunning=false
+      if (result >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+      else if (result >= 70) msg.innerText = "Потужний 💪"
+      else if (result < 20) msg.innerText = "Ти не тискуєш"
+      else msg.innerText = "Нормальний 👍"
+      isRunning = false
     }
-  },120)
+  }, 120)
 }
 
 // Утримання
-setInterval(()=>{
-  if(mode!==1) return
-  if(hold) value+=2
-  else value-=1
-  if(value<0) value=0
-  if(value>100) value=100
-  num.innerText=value
+setInterval(() => {
+  if (mode !== 1) return
+  if (hold) value += 2
+  else value -= 1
+  if (value < 0) value = 0
+  if (value > 100) value = 100
+  num.innerText = value
   updateBars(value)
 
   // повідомлення для утримання
-  if(value<20) msg.innerText="Ти не тискуєш"
-  else if(value<70) msg.innerText="Нормальний 👍"
-  else if(value<90) msg.innerText="Потужний 💪"
-  else msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
-},50)
+  if (value < 20) msg.innerText = "Ти не тискуєш"
+  else if (value < 70) msg.innerText = "Нормальний 👍"
+  else if (value < 90) msg.innerText = "Потужний 💪"
+  else msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+}, 50)
 
-// події
-btn.addEventListener("mousedown",()=>{if(mode===1) hold=true})
-btn.addEventListener("mouseup",()=>{hold=false})
-btn.addEventListener("mouseleave",()=>{hold=false})
-btn.addEventListener("click",()=>{if(mode===0) randomMode()})
+// події для ПК
+btn.addEventListener("mousedown", () => { if (mode === 1) hold = true })
+btn.addEventListener("mouseup", () => { hold = false })
+btn.addEventListener("mouseleave", () => { hold = false })
+btn.addEventListener("click", () => { if (mode === 0) randomMode() })
+
+// події для мобільних пристроїв
+btn.addEventListener("touchstart", (e) => {
+  e.preventDefault()
+  if (mode === 1) hold = true
+})
+btn.addEventListener("touchend", (e) => {
+  e.preventDefault()
+  hold = false
+})
+btn.addEventListener("touchcancel", (e) => {
+  e.preventDefault()
+  hold = false
+})
 </script>
 </body>
 </html>
