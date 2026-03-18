@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Тискометр</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:linear-gradient(180deg,#02162b,#000814);
+color:white;
+font-family:'Orbitron',sans-serif;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+transition:background 0.6s;
+}
+
+.panel{
+background:#0b0f16;
+border-radius:25px;
+padding:30px;
+width:360px;
+box-shadow:0 0 40px rgba(0,0,0,0.8);
+border:1px solid #2b2b2b;
+}
+
+.title{
+font-size:28px;
+text-align:center;
+color:#8ff5ff;
+text-shadow:0 0 10px #00eaff;
+margin-bottom:10px;
+}
+
+.subtitle{
+text-align:center;
+color:#aaa;
+margin-bottom:25px;
+}
+
+.scaleBox{
+background:#05070a;
+border-radius:15px;
+padding:20px;
+border:1px solid #333;
+cursor:pointer;
+transition:0.2s;
+}
+
+.scaleBox.disabled{
+opacity:0.5;
+cursor:not-allowed;
+}
+
+.scale{
+display:flex;
+gap:5px;
+justify-content:center;
+margin:15px 0;
+}
+
+.bar{
+width:8px;
+height:35px;
+background:#222;
+border-radius:5px;
+transition:0.2s;
+}
+
+.minmax{
+display:flex;
+justify-content:space-between;
+color:#666;
+font-size:12px;
+}
+
+.bottom{
+display:flex;
+gap:15px;
+margin-top:25px;
+}
+
+.displayBox{
+flex:1;
+background:#05070a;
+border-radius:15px;
+padding:15px;
+border:1px solid #333;
+}
+
+.displayTitle{
+color:#aaa;
+font-size:13px;
+}
+
+.number{
+font-size:52px;
+text-align:center;
+margin-top:10px;
+text-shadow:0 0 15px orange;
+transition:0.3s;
+}
+
+.modeBox{
+width:120px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+.modeTitle{
+color:#aaa;
+margin-bottom:10px;
+}
+
+.modeBtn{
+padding:14px 18px;
+border-radius:30px;
+border:none;
+font-size:16px;
+background:#00eaff;
+color:black;
+box-shadow:0 0 15px #00eaff;
+}
+
+.message{
+text-align:center;
+margin-top:15px;
+color:#ccc;
+}
+
+.flash-danger {
+animation: flashDanger 1s infinite;
+}
+
+@keyframes flashDanger {
+0% { background: linear-gradient(180deg,#02162b,#000814); }
+50% { background: linear-gradient(180deg,#5a0000,#ff0000); }
+100% { background: linear-gradient(180deg,#02162b,#000814); }
+}
+
+.dangerNumber{
+color:#ff2a2a;
+text-shadow:0 0 20px red;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+
+<div class="title">🇺🇦 ТИСКОМЕТР</div>
+<div class="subtitle">TM-v1.0.0 ТИСК 100 MAX</div>
+
+<div class="scaleBox" id="btn" onclick="start()">
+
+<div>ШКАЛА ТИСКУ</div>
+
+<div class="scale" id="scale"></div>
+
+<div class="minmax">
+<span>MIN</span>
+<span>MAX</span>
+</div>
+
+</div>
+
+<div class="bottom">
+
+<div class="displayBox">
+<div class="displayTitle">ПОКАЗНИК ТИСКУ</div>
+<div class="number" id="num">0</div>
+</div>
+
+<div class="modeBox">
+<div class="modeTitle">РЕЖИМ</div>
+<button class="modeBtn">Рандомний</button>
+</div>
+
+</div>
+
+<div class="message" id="msg">
+Натисни на шкалу щоб виміряти
+</div>
+
+</div>
+
+<script>
+
+let scale=document.getElementById("scale")
+
+for(let i=0;i<25;i++){
+let bar=document.createElement("div")
+bar.className="bar"
+scale.appendChild(bar)
+}
+
+let isRunning=false
+
+function tick(){
+let ctx=new AudioContext()
+let osc=ctx.createOscillator()
+osc.frequency.value=250
+osc.connect(ctx.destination)
+osc.start()
+setTimeout(()=>osc.stop(),60)
+}
+
+function boom(){
+let ctx=new AudioContext()
+let osc=ctx.createOscillator()
+osc.frequency.value=80
+osc.connect(ctx.destination)
+osc.start()
+setTimeout(()=>osc.stop(),200)
+}
+
+function start(){
+
+if(isRunning) return
+isRunning=true
+
+let btn=document.getElementById("btn")
+btn.classList.add("disabled")
+
+document.body.classList.remove("flash-danger")
+
+let num=document.getElementById("num")
+num.classList.remove("dangerNumber")
+
+let bars=document.querySelectorAll(".bar")
+let msg=document.getElementById("msg")
+
+msg.innerText="Вимірюється..."
+
+let i=0
+let result=0
+
+let interval=setInterval(()=>{
+
+result=Math.floor(Math.random()*100)
+num.innerText=result
+
+tick()
+
+bars.forEach((b,index)=>{
+
+if(index<result/4){
+
+if(index<8) b.style.background="#35ff5c"
+else if(index<16) b.style.background="#f6ff35"
+else if(index<22) b.style.background="#ff9d00"
+else b.style.background="#ff2a2a"
+
+}else{
+b.style.background="#222"
+}
+
+})
+
+i++
+
+if(i>20){
+
+clearInterval(interval)
+boom()
+
+if(result<=30){
+msg.innerText="Слабенький тиск 😌"
+}
+else if(result<=70){
+msg.innerText="Нормальний тиск 👍"
+}
+else if(result<90){
+msg.innerText="Потужний тиск 💪"
+}
+else{
+msg.innerText="КРИТИЧНИЙ ТИСК 🤯"
+num.classList.add("dangerNumber")
+document.body.classList.add("flash-danger")
+}
+
+isRunning=false
+btn.classList.remove("disabled")
+
+}
+
+},120)
+
+}
+
+</script>
+
+</body>
+</html>
