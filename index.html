@@ -11,8 +11,8 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 .panel{background:#0b0f16;border-radius:20px;padding:16px;width:75%;max-width:300px;box-shadow:0 0 30px rgba(0,0,0,0.8);border:1px solid #2b2b2b;}
 .title{font-size:20px;text-align:center;color:#8ff5ff;margin-bottom:5px;}
 .subtitle{font-size:11px;text-align:center;color:#aaa;margin-bottom:12px;}
-.scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;}
-.scale{display:flex;gap:3px;justify-content:center;margin:8px 0;}
+.scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.scale{display:flex;gap:3px;justify-content:center;margin:8px 0;width:100%;}
 .bar{width:6px;height:26px;background:#222;border-radius:5px;}
 .bottom{display:flex;gap:8px;margin-top:12px;align-items:center;}
 .displayBox{flex:1;background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;}
@@ -43,6 +43,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
   <div class="subtitle">TM-v2.7 FINAL</div>
+  <!-- 🔹 scaleBox тепер реагує на весь прямокутник -->
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
     <div class="scale" id="scale"></div>
