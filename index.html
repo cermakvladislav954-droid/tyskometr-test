@@ -6,40 +6,26 @@
 <title>Тискометр</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@500&display=swap" rel="stylesheet">
 <style>
-html, body{margin:0;padding:0;overflow:hidden;height:100%;}
-body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:'Orbitron',sans-serif;display:flex;justify-content:center;align-items:center;-webkit-user-select:none;user-select:none;touch-action:none;}
-.panel{background:#0b0f16;border-radius:20px;padding:16px;width:75%;max-width:300px;box-shadow:0 0 30px rgba(0,0,0,0.8);border:1px solid #2b2b2b;}
-.title{font-size:20px;text-align:center;color:#8ff5ff;margin-bottom:5px;}
-.subtitle{font-size:11px;text-align:center;color:#aaa;margin-bottom:12px;}
-.scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:70px;}
-.scale{display:flex;gap:3px;justify-content:center;width:100%;} /* <-- по центру */
-.bar{width:6px;height:26px;background:#222;border-radius:5px;}
-.bottom{display:flex;gap:8px;margin-top:12px;align-items:center;}
-.displayBox{flex:1;background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;}
-.number{font-size:36px;text-align:center;line-height:36px;}
-.modeBtn{
-    padding:10px;
-    height:36px;
-    border-radius:5px;
-    border:none;
-    font-size:14px;
-    font-family:'Roboto',sans-serif;
-    font-weight:500;
-    background:#00eaff;
-    color:black;
-    cursor:pointer;
-    box-shadow:0 0 10px #00eaff;
-    transition:0.2s;
-}
-.modeBtn:hover{background:#00c0d0;}
-.message{font-size:11px;text-align:center;margin-top:8px;color:#ccc;}
-.flash-danger{animation:flashDanger 1s infinite;}
-@keyframes flashDanger{50%{background:#5a0000;}}
-.dangerNumber{color:#ff2a2a;}
+html, body { margin:0; padding:0; overflow:hidden; height:100%; }
+body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-family:'Orbitron',sans-serif; display:flex; justify-content:center; align-items:center; -webkit-user-select:none; user-select:none; touch-action:none; }
+.panel { background:#0b0f16; border-radius:20px; padding:16px; width:75%; max-width:300px; box-shadow:0 0 30px rgba(0,0,0,0.8); border:1px solid #2b2b2b; display:flex; flex-direction:column; align-items:center; }
+.title { font-size:20px; text-align:center; color:#8ff5ff; margin-bottom:5px; }
+.subtitle { font-size:11px; text-align:center; color:#aaa; margin-bottom:12px; }
+.scaleBox { background:#05070a; border-radius:12px; padding:10px; border:1px solid #333; cursor:pointer; width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; height:70px; box-sizing:border-box; }
+.scale { display:flex; gap:3px; justify-content:center; width:100%; height:100%; align-items:flex-end; }
+.bar { width:6px; background:#222; border-radius:5px; transition:0.05s linear; }
+.bottom { display:flex; gap:8px; margin-top:12px; align-items:center; width:100%; }
+.displayBox { flex:1; background:#05070a; border-radius:12px; padding:10px; border:1px solid #333; text-align:center; }
+.number { font-size:36px; line-height:36px; }
+.modeBtn { padding:10px; height:36px; border-radius:5px; border:none; font-size:14px; font-family:'Roboto',sans-serif; font-weight:500; background:#00eaff; color:black; cursor:pointer; box-shadow:0 0 10px #00eaff; transition:0.2s; }
+.modeBtn:hover { background:#00c0d0; }
+.message { font-size:11px; text-align:center; margin-top:8px; color:#ccc; }
+.flash-danger { animation:flashDanger 1s infinite; }
+@keyframes flashDanger { 50%{background:#5a0000;} }
+.dangerNumber { color:#ff2a2a; }
 </style>
 </head>
 <body>
-
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
   <div class="subtitle">TM-v2.7 FINAL</div>
@@ -57,36 +43,26 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 <script>
 // шкала
 let scale=document.getElementById("scale");
-for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scale.appendChild(b);}
+for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";b.style.height="26px";scale.appendChild(b);}
 
 // змінні
 let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
-let touchState=0; // 0=стоп,1=вверх,2=стоп,3=низ
-let touchInterval=null;
+let touchState=0,touchInterval=null;
 
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
 
 // 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 let soundLock=false;
-function beep(frequency=500,volume=0.03,duration=0.05){
-    if(soundLock)return;
-    soundLock=true;
-    let osc=audioCtx.createOscillator();
-    let gain=audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.frequency.value=frequency;
-    gain.gain.value=volume;
-    osc.start();
-    osc.stop(audioCtx.currentTime+duration);
-    osc.onended=()=>{soundLock=false;}
-}
+function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
 
 function updateBars(val,final=false){
   let bars=document.querySelectorAll(".bar");
   bars.forEach((b,i)=>{
+    let h=10+16*(val/100); // динамічна висота
+    b.style.height=`${h}px`;
     if(i<val/4){if(i<8)b.style.background="#35ff5c";else if(i<16)b.style.background="#f6ff35";else if(i<22)b.style.background="#ff9d00";else b.style.background="#ff2a2a";}
     else{b.style.background="#222";}
   });
@@ -94,85 +70,45 @@ function updateBars(val,final=false){
   else{num.classList.remove("dangerNumber");document.body.classList.remove("flash-danger");}
 }
 
-// перемикання режимів (заблоковано під час активності)
-modeBtn.onclick=function(){
-  if(isRunning||cooldown||touchInterval) return;
-  mode=(mode+1)%3;
-  resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
-  if(mode===0) modeBtn.innerText="Рандомний";
-  else if(mode===1) modeBtn.innerText="Утримання";
-  else modeBtn.innerText="Дотик";
-  msg.innerText="Режим змінено";
-}
+// перемикання режимів
+modeBtn.onclick=function(){if(isRunning||cooldown||touchInterval) return; mode=(mode+1)%3; resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
+if(mode===0) modeBtn.innerText="Рандомний"; else if(mode===1) modeBtn.innerText="Утримання"; else modeBtn.innerText="Дотик";
+msg.innerText="Режим змінено";}
 
-// 🔥 Рандом
-function randomMode(){
-  if(isRunning||mode!==0||cooldown) return;
-  isRunning=true; resetEffects(); msg.innerText="Вимірюється..."; value=0;
-  let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)];
-  let finalValue=Math.floor(Math.random()*100);
-  steps.push(finalValue);
-  let idx=0;
-  let interval=setInterval(()=>{
-    let target=steps[idx];
-    if(value<target) value+=Math.random()*2.5;
-    else if(value>target) value-=Math.random()*2.5;
-    value=Math.max(0,Math.min(100,Math.round(value)));
-    if(Math.random()<0.25 && !soundLock) beep(600,0.03,0.05);
-    num.innerText=value; updateBars(value,false);
-    if(Math.abs(value-target)<2) idx++;
-    if(idx>=steps.length){
-      value=finalValue; num.innerText=finalValue; updateBars(finalValue,true);
-      if(finalValue>=90) msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
-      else if(finalValue>=70) msg.innerText="Потужний 💪";
-      else if(finalValue<20) msg.innerText="Ти не тискуєш";
-      else msg.innerText="Нормальний 👍";
-      clearInterval(interval); isRunning=false; cooldown=true;
-      setTimeout(()=>{cooldown=false;},1300);
-    }
-  },50);
-}
+// Рандом
+function randomMode(){if(isRunning||mode!==0||cooldown) return; isRunning=true; resetEffects(); msg.innerText="Вимірюється..."; value=0;
+let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)]; let finalValue=Math.floor(Math.random()*100); steps.push(finalValue);
+let idx=0; let interval=setInterval(()=>{
+  let target=steps[idx];
+  if(value<target)value+=Math.random()*2.5; else if(value>target)value-=Math.random()*2.5;
+  value=Math.max(0,Math.min(100,Math.round(value)));
+  if(Math.random()<0.25 && !soundLock) beep(600,0.03,0.05);
+  num.innerText=value; updateBars(value,false);
+  if(Math.abs(value-target)<2) idx++;
+  if(idx>=steps.length){value=finalValue; num.innerText=finalValue; updateBars(finalValue,true);
+    if(finalValue>=90) msg.innerText="КРИТИЧНИЙ ТИСК 🤯"; else if(finalValue>=70) msg.innerText="Потужний 💪";
+    else if(finalValue<20) msg.innerText="Ти не тискуєш"; else msg.innerText="Нормальний 👍";
+    clearInterval(interval); isRunning=false; cooldown=true; setTimeout(()=>{cooldown=false;},1300);}
+},50);}
 
-/* Утримання */
-setInterval(()=>{
-  if(mode!==1) return;
-  if(hold){if(value<100){value+=2; beep(700,0.03,0.05);}}
-  else{if(value>0){value-=1; beep(250,0.03,0.08);}}
-  value=Math.max(0,Math.min(100,value));
-  num.innerText=value; updateBars(value,true);
-  if(value<20) msg.innerText="Ти не тискуєш";
-  else if(value<70) msg.innerText="Нормальний 👍";
-  else if(value<90) msg.innerText="Потужний 💪";
-  else msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
+// Утримання
+setInterval(()=>{if(mode!==1) return;
+if(hold){if(value<100){value+=2; beep(700,0.03,0.05);}} else{if(value>0){value-=1; beep(250,0.03,0.08);}}
+value=Math.max(0,Math.min(100,value)); num.innerText=value; updateBars(value,true);
+if(value<20) msg.innerText="Ти не тискуєш"; else if(value<70) msg.innerText="Нормальний 👍";
+else if(value<90) msg.innerText="Потужний 💪"; else msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
 },50);
 
-/* Дотик режим (весь scaleBox) */
-function handleTouchMode(){
-  if(mode!==2) return;
-  if(isRunning) return;
-  touchState=(touchState+1)%4;
-  clearInterval(touchInterval);
-  if(touchState===0){msg.innerText="Стоп";} 
-  else if(touchState===1){ // вверх
-    msg.innerText="Піднімається";
-    touchInterval=setInterval(()=>{
-      if(value<100){value+=2; beep(700,0.03,0.05);}
-      value=Math.min(value,100);
-      num.innerText=value; updateBars(value,true);
-    },50);
-  } else if(touchState===2){ // стоп
-    msg.innerText="Стоп";
-  } else if(touchState===3){ // вниз
-    msg.innerText="Падає";
-    touchInterval=setInterval(()=>{
-      if(value>0){value-=2; beep(250,0.03,0.05);}
-      value=Math.max(value,0);
-      num.innerText=value; updateBars(value,true);
-    },50);
-  }
+// Дотик режим
+function handleTouchMode(){if(mode!==2) return;if(isRunning) return;
+touchState=(touchState+1)%4; clearInterval(touchInterval);
+if(touchState===0){msg.innerText="Стоп";}
+else if(touchState===1){msg.innerText="Піднімається"; touchInterval=setInterval(()=>{if(value<100){value+=2; beep(700,0.03,0.05);} value=Math.min(value,100); num.innerText=value; updateBars(value,true);},50);}
+else if(touchState===2){msg.innerText="Стоп";}
+else if(touchState===3){msg.innerText="Падає"; touchInterval=setInterval(()=>{if(value>0){value-=2; beep(250,0.03,0.05);} value=Math.max(value,0); num.innerText=value; updateBars(value,true);},50);}
 }
 
-// Події для дотик/утримання
+// Події
 btn.addEventListener("mousedown",()=>{if(mode===1) hold=true; handleTouchMode();});
 btn.addEventListener("mouseup",()=>{hold=false;});
 btn.addEventListener("mouseleave",()=>{hold=false;});
