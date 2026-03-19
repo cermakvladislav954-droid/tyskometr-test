@@ -1,7 +1,11 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
+
+<!-- ❗ БЛОК ЗУМУ -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Тискометр</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -21,17 +25,20 @@ body{
   user-select:none;
 }
 
+/* ✅ ЗБІЛЬШЕНИЙ БЛОК */
 .panel{
   background:#0b0f16;
   border-radius:25px;
-  padding:30px;
-  width:360px;
+  padding:40px;
+  width:90%;
+  max-width:500px;
   box-shadow:0 0 40px rgba(0,0,0,0.8);
   border:1px solid #2b2b2b;
 }
 
+/* ✅ БІЛЬШИЙ ТЕКСТ */
 .title{
-  font-size:28px;
+  font-size:32px;
   text-align:center;
   color:#8ff5ff;
   text-shadow:0 0 10px #00eaff;
@@ -60,8 +67,8 @@ body{
 }
 
 .bar{
-  width:8px;
-  height:35px;
+  width:10px; /* трохи ширші */
+  height:40px; /* трохи вищі */
   background:#222;
   border-radius:5px;
   transition:0.2s;
@@ -77,22 +84,23 @@ body{
   flex:1;
   background:#05070a;
   border-radius:15px;
-  padding:15px;
+  padding:20px;
   border:1px solid #333;
 }
 
+/* ✅ БІЛЬШЕ ЧИСЛО */
 .number{
-  font-size:52px;
+  font-size:64px;
   text-align:center;
   margin-top:10px;
   text-shadow:0 0 15px orange;
 }
 
 .modeBtn{
-  padding:14px 18px;
+  padding:18px;
   border-radius:30px;
   border:none;
-  font-size:16px;
+  font-size:18px;
   background:#00eaff;
   color:black;
   box-shadow:0 0 15px #00eaff;
@@ -157,7 +165,7 @@ for (let i = 0; i < 25; i++) {
 }
 
 // змінні
-let mode = 0 // 0 = Рандомний, 1 = Утримання
+let mode = 0
 let isRunning = false
 let hold = false
 let value = 0
@@ -167,13 +175,11 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-// очищення ефектів
 function resetEffects() {
   document.body.classList.remove("flash-danger")
   num.classList.remove("dangerNumber")
 }
 
-// оновлення шкали і ефектів
 function updateBars(val) {
   let bars = document.querySelectorAll(".bar")
   bars.forEach((b, index) => {
@@ -200,7 +206,6 @@ function updateBars(val) {
   }
 }
 
-// перемикання режиму
 modeBtn.onclick = function () {
   mode = mode === 0 ? 1 : 0
   resetEffects()
@@ -211,7 +216,6 @@ modeBtn.onclick = function () {
   modeBtn.innerText = mode === 0 ? "Рандомний" : "Утримання"
 }
 
-// Рандомний режим
 function randomMode() {
   if (isRunning || mode !== 0) return
   isRunning = true
@@ -237,7 +241,6 @@ function randomMode() {
   }, 120)
 }
 
-// Утримання
 setInterval(() => {
   if (mode !== 1) return
   if (hold) value += 2
@@ -253,12 +256,10 @@ setInterval(() => {
   else msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
 }, 50)
 
-// Події для утримання на ПК
 btn.addEventListener("mousedown", () => { if (mode === 1) hold = true })
 btn.addEventListener("mouseup", () => { hold = false })
 btn.addEventListener("mouseleave", () => { hold = false })
 
-// Події для утримання на мобільних
 btn.addEventListener("touchstart", (e) => { 
   e.preventDefault()
   if (mode === 1) hold = true 
@@ -272,7 +273,6 @@ btn.addEventListener("touchcancel", (e) => {
   hold = false 
 })
 
-// Подія для запуску Рандомного режиму
 btn.addEventListener("click", () => { randomMode() })
 btn.addEventListener("touchend", (e) => { 
   if (mode === 0) randomMode()
