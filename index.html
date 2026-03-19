@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+
 html, body{
   margin:0;
   padding:0;
@@ -24,91 +25,96 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  touch-action:none;
+  -webkit-user-select:none; 
   user-select:none;
+  touch-action:none;
 }
 
-/* 🔥 ЩЕ МЕНШИЙ */
+/* 🔽 трохи МЕНШИЙ */
 .panel{
   background:#0b0f16;
-  border-radius:20px;
+  border-radius:25px;
   padding:20px;
   width:80%;
-  max-width:320px;
-  box-shadow:0 0 30px rgba(0,0,0,0.8);
+  max-width:340px;
+  box-shadow:0 0 40px rgba(0,0,0,0.8);
   border:1px solid #2b2b2b;
 }
 
 .title{
-  font-size:22px;
+  font-size:24px;
   text-align:center;
   color:#8ff5ff;
-  margin-bottom:5px;
+  text-shadow:0 0 10px #00eaff;
+  margin-bottom:8px;
 }
 
 .subtitle{
   text-align:center;
   color:#aaa;
-  margin-bottom:15px;
-  font-size:12px;
+  margin-bottom:18px;
 }
 
 .scaleBox{
   background:#05070a;
-  border-radius:12px;
-  padding:12px;
+  border-radius:15px;
+  padding:14px;
   border:1px solid #333;
   cursor:pointer;
 }
 
 .scale{
   display:flex;
-  gap:3px;
+  gap:4px;
   justify-content:center;
-  margin:8px 0;
+  margin:10px 0;
 }
 
 .bar{
-  width:6px;
-  height:28px;
+  width:7px;
+  height:30px;
   background:#222;
   border-radius:5px;
+  transition:0.2s;
 }
 
 .bottom{
   display:flex;
   gap:10px;
-  margin-top:15px;
+  margin-top:18px;
 }
 
 .displayBox{
   flex:1;
   background:#05070a;
-  border-radius:12px;
-  padding:12px;
+  border-radius:15px;
+  padding:14px;
   border:1px solid #333;
 }
 
 .number{
-  font-size:40px;
+  font-size:44px;
   text-align:center;
+  margin-top:5px;
+  text-shadow:0 0 15px orange;
 }
 
 .modeBtn{
   padding:12px;
-  border-radius:20px;
+  border-radius:25px;
   border:none;
   font-size:13px;
   background:#00eaff;
   color:black;
+  box-shadow:0 0 15px #00eaff;
   cursor:pointer;
 }
 
 .message{
   text-align:center;
-  margin-top:10px;
-  font-size:12px;
+  margin-top:12px;
   color:#ccc;
+  font-size:12px;
 }
 
 .flash-danger {
@@ -116,11 +122,14 @@ body{
 }
 
 @keyframes flashDanger {
-  50% { background:#5a0000; }
+  0% { background: linear-gradient(180deg,#02162b,#000814); }
+  50% { background: linear-gradient(180deg,#5a0000,#ff0000); }
+  100% { background: linear-gradient(180deg,#02162b,#000814); }
 }
 
 .dangerNumber{
   color:#ff2a2a;
+  text-shadow:0 0 20px red;
 }
 </style>
 </head>
@@ -170,30 +179,52 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-/* 🔊 звук */
+/* 🔊 ТИХИЙ ЗВУК */
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 function beep(){
   let osc = audioCtx.createOscillator()
   let gain = audioCtx.createGain()
   osc.connect(gain)
   gain.connect(audioCtx.destination)
-  osc.frequency.value = 800
-  gain.gain.value = 0.05
+  osc.frequency.value = 700
+  gain.gain.value = 0.02 /* дуже тихо */
   osc.start()
-  osc.stop(audioCtx.currentTime + 0.05)
+  osc.stop(audioCtx.currentTime + 0.04)
+}
+
+function resetEffects() {
+  document.body.classList.remove("flash-danger")
+  num.classList.remove("dangerNumber")
 }
 
 function updateBars(val) {
   let bars = document.querySelectorAll(".bar")
-  bars.forEach((b, i) => {
-    b.style.background = i < val/4 ? "#35ff5c" : "#222"
+  bars.forEach((b, index) => {
+    if (index < val / 4) {
+      if (index < 8) b.style.background = "#35ff5c"
+      else if (index < 16) b.style.background = "#f6ff35"
+      else if (index < 22) b.style.background = "#ff9d00"
+      else b.style.background = "#ff2a2a"
+    } else {
+      b.style.background = "#222"
+    }
   })
+
+  if (val >= 90) {
+    num.classList.add("dangerNumber")
+    document.body.classList.add("flash-danger")
+  } else {
+    num.classList.remove("dangerNumber")
+    document.body.classList.remove("flash-danger")
+  }
 }
 
-/* ❗ блок кнопки під час роботи */
+/* 🔒 БЛОК ПІД ЧАС ВИМІРЮВАННЯ */
 modeBtn.onclick = function () {
-  if(isRunning) return
+  if (isRunning) return
+
   mode = mode === 0 ? 1 : 0
+  resetEffects()
   value = 0
   num.innerText = 0
   updateBars(0)
@@ -204,26 +235,31 @@ modeBtn.onclick = function () {
 function randomMode() {
   if (isRunning || mode !== 0) return
   isRunning = true
+  resetEffects()
   msg.innerText = "Вимірюється..."
-
   let i = 0
+  let result = 0
+
   let interval = setInterval(() => {
 
     beep() /* 🔊 звук */
 
-    let result = Math.floor(Math.random() * 100)
+    result = Math.floor(Math.random() * 100)
     value = result
     num.innerText = result
     updateBars(result)
-
     i++
+
     if (i > 20) {
       clearInterval(interval)
-      msg.innerText = "Готово"
+      if (result >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+      else if (result >= 70) msg.innerText = "Потужний 💪"
+      else if (result < 20) msg.innerText = "Ти не тискуєш"
+      else msg.innerText = "Нормальний 👍"
       isRunning = false
     }
 
-  }, 100)
+  }, 120)
 }
 
 setInterval(() => {
@@ -232,9 +268,8 @@ setInterval(() => {
   if (hold){
     value += 2
     beep() /* 🔊 звук при утриманні */
-  } else {
-    value -= 1
   }
+  else value -= 1
 
   if (value < 0) value = 0
   if (value > 100) value = 100
@@ -242,16 +277,22 @@ setInterval(() => {
   num.innerText = value
   updateBars(value)
 
-}, 60)
+  if (value < 20) msg.innerText = "Ти не тискуєш"
+  else if (value < 70) msg.innerText = "Нормальний 👍"
+  else if (value < 90) msg.innerText = "Потужний 💪"
+  else msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+}, 50)
 
 btn.addEventListener("mousedown", () => { if (mode === 1) hold = true })
-btn.addEventListener("mouseup", () => hold = false)
-btn.addEventListener("mouseleave", () => hold = false)
+btn.addEventListener("mouseup", () => { hold = false })
+btn.addEventListener("mouseleave", () => { hold = false })
 
 btn.addEventListener("touchstart", (e) => { e.preventDefault(); if (mode === 1) hold = true })
 btn.addEventListener("touchend", (e) => { e.preventDefault(); hold = false })
+btn.addEventListener("touchcancel", (e) => { e.preventDefault(); hold = false })
 
-btn.addEventListener("click", () => randomMode())
+btn.addEventListener("click", () => { randomMode() })
+btn.addEventListener("touchend", () => { if (mode === 0) randomMode() })
 
 </script>
 </body>
