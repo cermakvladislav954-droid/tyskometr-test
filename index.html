@@ -31,7 +31,7 @@ body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-fam
 @keyframes flashDanger { 50%{background:#5a0000;} }
 .dangerNumber { color:#ff2a2a; }
 
-/* Новий режим: руний слайдер */
+/* Рунний слайдер */
 .sliderBox { width:100%; height:30px; background:#222; border-radius:10px; margin-top:15px; position:relative; display:none; }
 .slider { width:30px; height:30px; background:#00eaff; border-radius:50%; position:absolute; top:0; left:0; cursor:pointer; }
 </style>
@@ -39,7 +39,7 @@ body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-fam
 <body>
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
-  <div class="subtitle">TM-v2.8 FINAL</div>
+  <div class="subtitle">TM-v2.9 FINAL</div>
 
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
@@ -70,7 +70,7 @@ let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=do
 
 let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
-let dragging=false;
+let dragging=false, prevSliderValue=0;
 
 // 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -136,20 +136,25 @@ else if(touchState===2){msg.innerText="Стоп";}
 else if(touchState===3){msg.innerText="Падає"; touchInterval=setInterval(()=>{if(value>0){value-=2; beep(250,0.03,0.05);} value=Math.max(value,0); num.innerText=value; updateBars(value,true);},50);}
 }
 
-// Drag slider
+// Рунний слайдер
 function setValueFromSlider(x){
   let rect=sliderBox.getBoundingClientRect();
   let val=Math.round(((x-rect.left)/rect.width)*100);
   val=Math.max(0,Math.min(100,val));
+
+  // звук залежно від напрямку
+  if(val>value){ beep(700,0.03,0.05); } // вверх
+  else if(val<value){ beep(250,0.03,0.05); } // вниз
+
   value=val; num.innerText=value; updateBars(value,true);
   slider.style.left=(val/100)*(rect.width-slider.offsetWidth)+"px";
 }
 
-slider.addEventListener("mousedown",()=>{dragging=true;});
+slider.addEventListener("mousedown",()=>{dragging=true; prevSliderValue=value;});
 document.addEventListener("mouseup",()=>{dragging=false;});
 document.addEventListener("mousemove",(e)=>{if(mode===3 && dragging){setValueFromSlider(e.clientX);}});
 
-slider.addEventListener("touchstart",(e)=>{dragging=true;});
+slider.addEventListener("touchstart",(e)=>{dragging=true; prevSliderValue=value;});
 document.addEventListener("touchend",(e)=>{dragging=false;});
 document.addEventListener("touchmove",(e)=>{if(mode===3 && dragging){setValueFromSlider(e.touches[0].clientX);}});
 
