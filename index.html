@@ -41,15 +41,17 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 </div>
 
 <script>
-let scale = document.getElementById("scale");
+// шкала
+let scale=document.getElementById("scale");
 for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scale.appendChild(b);}
 
 let mode=0,isRunning=false,hold=false,value=0;
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
 
+// 🔊 звук
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 let lastBeep=0;
-function beep(){let now=Date.now();if(now-lastBeep<120)return;lastBeep=now;let osc=audioCtx.createOscillator();let gain=audioCtx.createGain();osc.connect(gain);gain.connect(audioCtx.destination);osc.frequency.value=700;gain.gain.value=0.02;osc.start();osc.stop(audioCtx.currentTime+0.04);}
+function beep(){let now=Date.now();if(now-lastBeep<100)return;lastBeep=now;let osc=audioCtx.createOscillator();let gain=audioCtx.createGain();osc.connect(gain);gain.connect(audioCtx.destination);osc.frequency.value=700;gain.gain.value=0.015;osc.start();osc.stop(audioCtx.currentTime+0.04);}
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
 
@@ -61,37 +63,32 @@ function updateBars(val){
 
 modeBtn.onclick=function(){if(isRunning)return;mode=mode===0?1:0;resetEffects();value=0;num.innerText=0;updateBars(0);msg.innerText="Режим змінено";modeBtn.innerText=mode===0?"Рандомний":"Утримання";}
 
-/* 🔥 РАНДОМ З КОЛИВАННЯМ */
+// 🔥 Рандом із “імпульсами”
 function randomMode(){
   if(isRunning||mode!==0)return;
   isRunning=true;
   resetEffects();
   msg.innerText="Вимірюється...";
   value=0;
-  let finalValue=Math.floor(Math.random()*100);
-  let frames=0;
-  let cycle=0;
-  let direction=1;
   
-  let interval=setInterval(()=>{
-    // коливання: вверх-вниз декілька разів
-    if(cycle<6){
-      value+=direction*(Math.random()*5+1);
-      if(value>=100){direction=-1;cycle++;}
-      if(value<=0){direction=1;cycle++;}
-    } else {
-      // підхід до фінального значення плавно
-      if(value<finalValue)value+=Math.random()*3;
-      if(value>finalValue)value-=Math.random()*3;
-    }
+  // генеруємо масив випадкових проміжних значень + фінальне
+  let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100), Math.floor(Math.random()*100)];
+  let finalValue=Math.floor(Math.random()*100);
+  steps.push(finalValue);
+  let idx=0;
 
+  let interval=setInterval(()=>{
+    let target=steps[idx];
+    if(value<target)value+=Math.random()*5;
+    else if(value>target)value-=Math.random()*5;
     value=Math.max(0,Math.min(100,Math.round(value)));
     if(value<100)beep();
     num.innerText=value;
     updateBars(value);
 
-    frames++;
-    if(cycle>=6 && Math.abs(value-finalValue)<2){
+    if(Math.abs(value-target)<3){idx++;} // рух до наступного значення
+    if(idx>=steps.length){ 
+      // фінал
       value=finalValue;
       num.innerText=finalValue;
       updateBars(finalValue);
@@ -102,6 +99,7 @@ function randomMode(){
       clearInterval(interval);
       isRunning=false;
     }
+
   },60);
 }
 
