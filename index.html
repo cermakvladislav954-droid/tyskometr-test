@@ -30,7 +30,6 @@ body{
   touch-action:none;
 }
 
-/* 🔽 трохи МЕНШИЙ */
 .panel{
   background:#0b0f16;
   border-radius:25px;
@@ -179,7 +178,7 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-/* 🔊 ТИХИЙ ЗВУК */
+/* звук */
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 function beep(){
   let osc = audioCtx.createOscillator()
@@ -187,7 +186,7 @@ function beep(){
   osc.connect(gain)
   gain.connect(audioCtx.destination)
   osc.frequency.value = 700
-  gain.gain.value = 0.02 /* дуже тихо */
+  gain.gain.value = 0.02
   osc.start()
   osc.stop(audioCtx.currentTime + 0.04)
 }
@@ -219,7 +218,7 @@ function updateBars(val) {
   }
 }
 
-/* 🔒 БЛОК ПІД ЧАС ВИМІРЮВАННЯ */
+/* блок кнопки */
 modeBtn.onclick = function () {
   if (isRunning) return
 
@@ -242,7 +241,7 @@ function randomMode() {
 
   let interval = setInterval(() => {
 
-    beep() /* 🔊 звук */
+    beep()
 
     result = Math.floor(Math.random() * 100)
     value = result
@@ -266,10 +265,13 @@ setInterval(() => {
   if (mode !== 1) return
 
   if (hold){
-    value += 2
-    beep() /* 🔊 звук при утриманні */
+    if (value < 100){
+      value += 2
+      beep() /* 🔥 тепер тільки якщо <100 */
+    }
+  } else {
+    value -= 1
   }
-  else value -= 1
 
   if (value < 0) value = 0
   if (value > 100) value = 100
