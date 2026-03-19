@@ -16,13 +16,14 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 .bar{width:6px;height:26px;background:#222;border-radius:5px;}
 .bottom{display:flex;gap:8px;margin-top:12px;align-items:center;}
 .displayBox{flex:1;background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;}
-.number{font-size:36px;text-align:center;}
+.number{font-size:36px;text-align:center;line-height:36px;}
 .modeBtn{
     padding:10px;
-    border-radius:5px; /* квадратна кнопка */
+    height:36px; /* висота як показник */
+    border-radius:5px;
     border:none;
     font-size:14px;
-    font-family:'Roboto',sans-serif; /* гарний шрифт */
+    font-family:'Roboto',sans-serif;
     font-weight:500;
     background:#00eaff;
     color:black;
@@ -63,7 +64,7 @@ let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=do
 
 // 🔊 аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(frequency=700,volume=0.015,duration=0.04){
+function beep(frequency=700,volume=0.01,duration=0.03){ // зменшили звук
     let osc=audioCtx.createOscillator();
     let gain=audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
@@ -101,15 +102,15 @@ function randomMode(){
 
   let interval=setInterval(()=>{
     let target=steps[idx];
-    if(value<target)value+=Math.random()*5;
-    else if(value>target)value-=Math.random()*5;
+    if(value<target)value+=Math.random()*3; // менше стрибків
+    else if(value>target)value-=Math.random()*3;
     value=Math.max(0,Math.min(100,Math.round(value)));
     
-    if(value<100)beep(700,0.01); // високий звук під час руху
+    if(value<100 && Math.random()<0.3)beep(700,0.008); // рідкіший, тихий звук
     num.innerText=value;
     updateBars(value,false);
     
-    if(Math.abs(value-target)<3){idx++;}
+    if(Math.abs(value-target)<2){idx++;}
     if(idx>=steps.length){
       value=finalValue;
       num.innerText=finalValue;
@@ -121,17 +122,17 @@ function randomMode(){
       clearInterval(interval);
       isRunning=false;
     }
-  },60);
+  },50);
 }
 
 /* Утримання */
 setInterval(()=>{
   if(mode!==1)return;
-  if(hold){if(value<100){value+=2;beep(700,0.015);}} 
+  if(hold){if(value<100){value+=2; if(Math.random()<0.4)beep(700,0.008);}} // тихіший, рідкіший звук
   else {
     if(value>0){
       value-=1;
-      beep(200,0.02); // 🔊 низький звук падіння
+      if(Math.random()<0.4)beep(200,0.012); // низький звук падіння, рідкіший
     }
   }
   value=Math.max(0,Math.min(100,value));
