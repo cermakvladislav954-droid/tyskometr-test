@@ -30,90 +30,87 @@ body{
   touch-action:none;
 }
 
+/* 🔽 ЩЕ МЕНШЕ */
 .panel{
   background:#0b0f16;
-  border-radius:25px;
-  padding:20px;
-  width:80%;
-  max-width:340px;
-  box-shadow:0 0 40px rgba(0,0,0,0.8);
+  border-radius:20px;
+  padding:16px;
+  width:75%;
+  max-width:300px;
+  box-shadow:0 0 30px rgba(0,0,0,0.8);
   border:1px solid #2b2b2b;
 }
 
 .title{
-  font-size:24px;
+  font-size:20px;
   text-align:center;
   color:#8ff5ff;
-  text-shadow:0 0 10px #00eaff;
-  margin-bottom:8px;
+  margin-bottom:5px;
 }
 
 .subtitle{
   text-align:center;
   color:#aaa;
-  margin-bottom:18px;
+  margin-bottom:12px;
+  font-size:11px;
 }
 
 .scaleBox{
   background:#05070a;
-  border-radius:15px;
-  padding:14px;
+  border-radius:12px;
+  padding:10px;
   border:1px solid #333;
   cursor:pointer;
 }
 
 .scale{
   display:flex;
-  gap:4px;
+  gap:3px;
   justify-content:center;
-  margin:10px 0;
+  margin:8px 0;
 }
 
 .bar{
-  width:7px;
-  height:30px;
+  width:6px;
+  height:26px;
   background:#222;
   border-radius:5px;
-  transition:0.2s;
 }
 
 .bottom{
   display:flex;
-  gap:10px;
-  margin-top:18px;
+  gap:8px;
+  margin-top:12px;
 }
 
 .displayBox{
   flex:1;
   background:#05070a;
-  border-radius:15px;
-  padding:14px;
+  border-radius:12px;
+  padding:10px;
   border:1px solid #333;
 }
 
 .number{
-  font-size:44px;
+  font-size:36px;
   text-align:center;
-  margin-top:5px;
-  text-shadow:0 0 15px orange;
 }
 
 .modeBtn{
-  padding:12px;
-  border-radius:25px;
+  padding:10px;
+  border-radius:20px;
   border:none;
-  font-size:13px;
+  font-size:12px;
   background:#00eaff;
   color:black;
-  box-shadow:0 0 15px #00eaff;
   cursor:pointer;
 }
 
 .message{
   text-align:center;
-  margin-top:12px;
+  margin-top:8px;
+  font-size:11px;
   color:#ccc;
-  font-size:12px;
 }
 
 .flash-danger {
@@ -121,14 +118,11 @@ body{
 }
 
 @keyframes flashDanger {
-  0% { background: linear-gradient(180deg,#02162b,#000814); }
-  50% { background: linear-gradient(180deg,#5a0000,#ff0000); }
-  100% { background: linear-gradient(180deg,#02162b,#000814); }
+  50% { background:#5a0000; }
 }
 
 .dangerNumber{
   color:#ff2a2a;
-  text-shadow:0 0 20px red;
 }
 </style>
 </head>
@@ -178,14 +172,13 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-/* 🔊 звук з затримкою */
+/* звук */
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 let lastBeep = 0
 
 function beep(){
   let now = Date.now()
-  if (now - lastBeep < 120) return /* ⏱ затримка */
-
+  if (now - lastBeep < 120) return
   lastBeep = now
 
   let osc = audioCtx.createOscillator()
@@ -237,34 +230,46 @@ modeBtn.onclick = function () {
   modeBtn.innerText = mode === 0 ? "Рандомний" : "Утримання"
 }
 
+/* 🔥 ПЛАВНИЙ РАНДОМ */
 function randomMode() {
   if (isRunning || mode !== 0) return
+
   isRunning = true
   resetEffects()
   msg.innerText = "Вимірюється..."
-  let i = 0
-  let result = 0
+
+  let target = Math.floor(Math.random() * 100)
+  let steps = 0
 
   let interval = setInterval(() => {
 
-    beep()
+    if (value < target) value += Math.random() * 4
+    else if (value > target) value -= Math.random() * 4
 
-    result = Math.floor(Math.random() * 100)
-    value = result
-    num.innerText = result
-    updateBars(result)
-    i++
+    value = Math.max(0, Math.min(100, Math.round(value)))
 
-    if (i > 20) {
-      clearInterval(interval)
-      if (result >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
-      else if (result >= 70) msg.innerText = "Потужний 💪"
-      else if (result < 20) msg.innerText = "Ти не тискуєш"
+    if (value < 100) beep()
+
+    num.innerText = value
+    updateBars(value)
+
+    steps++
+
+    if (steps > 40 && Math.abs(value - target) < 2) {
+      value = target
+      num.innerText = target
+      updateBars(target)
+
+      if (target >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+      else if (target >= 70) msg.innerText = "Потужний 💪"
+      else if (target < 20) msg.innerText = "Ти не тискуєш"
       else msg.innerText = "Нормальний 👍"
+
+      clearInterval(interval)
       isRunning = false
     }
 
-  }, 120)
+  }, 60)
 }
 
 setInterval(() => {
@@ -273,7 +278,7 @@ setInterval(() => {
   if (hold){
     if (value < 100){
       value += 2
-      beep() /* тепер з затримкою */
+      beep()
     }
   } else {
     value -= 1
