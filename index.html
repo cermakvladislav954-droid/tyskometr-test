@@ -64,18 +64,14 @@ let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=do
 
 // 🔊 аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-let lastBeepTime=0;
-function beep(frequency=700,volume=0.03,duration=0.04){ // гучніший, але рідкісніший
-    let now=audioCtx.currentTime;
-    if(now-lastBeepTime<0.15) return; // пауза між піками
-    lastBeepTime=now;
-
+function beep(frequency=700,volume=0.03,duration=0.04){
     let osc=audioCtx.createOscillator();
     let gain=audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.frequency.value=frequency;
     gain.gain.value=volume;
-    osc.start(); osc.stop(now+duration);
+    osc.start();
+    osc.stop(audioCtx.currentTime+duration);
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
@@ -92,7 +88,7 @@ function updateBars(val,final=false){
 
 modeBtn.onclick=function(){if(isRunning)return;mode=mode===0?1:0;resetEffects();value=0;num.innerText=0;updateBars(0);msg.innerText="Режим змінено";modeBtn.innerText=mode===0?"Рандомний":"Утримання";}
 
-// 🔥 Рандом із “імпульсами”
+// 🔥 Рандом із плавним “імпульсом”
 function randomMode(){
   if(isRunning||mode!==0)return;
   isRunning=true;
@@ -111,7 +107,9 @@ function randomMode(){
     else if(value>target)value-=Math.random()*3;
     value=Math.max(0,Math.min(100,Math.round(value)));
 
-    if(value<100 && Math.random()<0.4) beep(700,0.03,0.04); // рідкіший, гучний звук
+    // 🔊 звук рідко, але помітно
+    if(Math.random()<0.35 && value<100) beep(700,0.03,0.04);
+
     num.innerText=value;
     updateBars(value,false);
 
@@ -137,7 +135,7 @@ setInterval(()=>{
   else{
     if(value>0){
       value-=1;
-      if(Math.random()<0.3) beep(200,0.03,0.05); // низький, рідкісний звук при падінні
+      if(Math.random()<0.3) beep(200,0.03,0.05); // низький звук при падінні
     }
   }
   value=Math.max(0,Math.min(100,value));
