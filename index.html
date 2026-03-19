@@ -178,9 +178,16 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-/* звук */
+/* 🔊 звук з затримкою */
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+let lastBeep = 0
+
 function beep(){
+  let now = Date.now()
+  if (now - lastBeep < 120) return /* ⏱ затримка */
+
+  lastBeep = now
+
   let osc = audioCtx.createOscillator()
   let gain = audioCtx.createGain()
   osc.connect(gain)
@@ -218,7 +225,6 @@ function updateBars(val) {
   }
 }
 
-/* блок кнопки */
 modeBtn.onclick = function () {
   if (isRunning) return
 
@@ -267,7 +273,7 @@ setInterval(() => {
   if (hold){
     if (value < 100){
       value += 2
-      beep() /* 🔥 тепер тільки якщо <100 */
+      beep() /* тепер з затримкою */
     }
   } else {
     value -= 1
