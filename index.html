@@ -1,10 +1,10 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Тискометр</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 <style>
 html, body{margin:0;padding:0;overflow:hidden;height:100%;}
 body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:'Orbitron',sans-serif;display:flex;justify-content:center;align-items:center;-webkit-user-select:none;user-select:none;touch-action:none;}
@@ -14,10 +14,23 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 .scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;}
 .scale{display:flex;gap:3px;justify-content:center;margin:8px 0;}
 .bar{width:6px;height:26px;background:#222;border-radius:5px;}
-.bottom{display:flex;gap:8px;margin-top:12px;}
+.bottom{display:flex;gap:8px;margin-top:12px;align-items:center;}
 .displayBox{flex:1;background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;}
 .number{font-size:36px;text-align:center;}
-.modeBtn{padding:10px;border-radius:20px;border:none;font-size:12px;background:#00eaff;color:black;cursor:pointer;}
+.modeBtn{
+    padding:10px 16px;
+    border-radius:20px;
+    border:none;
+    font-size:14px;
+    font-family:'Roboto',sans-serif;
+    font-weight:500;
+    background:#00eaff;
+    color:black;
+    cursor:pointer;
+    box-shadow:0 0 10px #00eaff;
+    transition:0.2s;
+}
+.modeBtn:hover{background:#00c0d0;}
 .message{font-size:11px;text-align:center;margin-top:8px;color:#ccc;}
 .flash-danger{animation:flashDanger 1s infinite;}
 @keyframes flashDanger{50%{background:#5a0000;}}
@@ -48,17 +61,27 @@ for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scal
 let mode=0,isRunning=false,hold=false,value=0;
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
 
-// 🔊 звук
+// 🔊 аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-let lastBeep=0;
-function beep(){let now=Date.now();if(now-lastBeep<100)return;lastBeep=now;let osc=audioCtx.createOscillator();let gain=audioCtx.createGain();osc.connect(gain);gain.connect(audioCtx.destination);osc.frequency.value=700;gain.gain.value=0.015;osc.start();osc.stop(audioCtx.currentTime+0.04);}
+function beep(frequency=700,volume=0.015,duration=0.04){
+    let osc=audioCtx.createOscillator();
+    let gain=audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value=frequency;
+    gain.gain.value=volume;
+    osc.start(); osc.stop(audioCtx.currentTime+duration);
+}
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
 
-function updateBars(val){
+function updateBars(val,final=false){
   let bars=document.querySelectorAll(".bar");
-  bars.forEach((b,i)=>{if(i<val/4){if(i<8)b.style.background="#35ff5c";else if(i<16)b.style.background="#f6ff35";else if(i<22)b.style.background="#ff9d00";else b.style.background="#ff2a2a";}else{b.style.background="#222";}});
-  if(val>=90){num.classList.add("dangerNumber");document.body.classList.add("flash-danger");}else{num.classList.remove("dangerNumber");document.body.classList.remove("flash-danger");}
+  bars.forEach((b,i)=>{
+    if(i<val/4){if(i<8)b.style.background="#35ff5c";else if(i<16)b.style.background="#f6ff35";else if(i<22)b.style.background="#ff9d00";else b.style.background="#ff2a2a";}
+    else{b.style.background="#222";}
+  });
+  if(final && val>=90){num.classList.add("dangerNumber");document.body.classList.add("flash-danger");}
+  else{num.classList.remove("dangerNumber");document.body.classList.remove("flash-danger");}
 }
 
 modeBtn.onclick=function(){if(isRunning)return;mode=mode===0?1:0;resetEffects();value=0;num.innerText=0;updateBars(0);msg.innerText="Режим змінено";modeBtn.innerText=mode===0?"Рандомний":"Утримання";}
@@ -70,9 +93,8 @@ function randomMode(){
   resetEffects();
   msg.innerText="Вимірюється...";
   value=0;
-  
-  // генеруємо масив випадкових проміжних значень + фінальне
-  let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100), Math.floor(Math.random()*100)];
+
+  let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)];
   let finalValue=Math.floor(Math.random()*100);
   steps.push(finalValue);
   let idx=0;
@@ -82,16 +104,16 @@ function randomMode(){
     if(value<target)value+=Math.random()*5;
     else if(value>target)value-=Math.random()*5;
     value=Math.max(0,Math.min(100,Math.round(value)));
-    if(value<100)beep();
+    
+    if(value<100)beep(700,0.01); // високий звук під час руху
     num.innerText=value;
-    updateBars(value);
-
-    if(Math.abs(value-target)<3){idx++;} // рух до наступного значення
-    if(idx>=steps.length){ 
-      // фінал
+    updateBars(value,false);
+    
+    if(Math.abs(value-target)<3){idx++;}
+    if(idx>=steps.length){
       value=finalValue;
       num.innerText=finalValue;
-      updateBars(finalValue);
+      updateBars(finalValue,true); // червоний тільки фінал
       if(finalValue>=90)msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
       else if(finalValue>=70)msg.innerText="Потужний 💪";
       else if(finalValue<20)msg.innerText="Ти не тискуєш";
@@ -99,17 +121,22 @@ function randomMode(){
       clearInterval(interval);
       isRunning=false;
     }
-
   },60);
 }
 
 /* Утримання */
 setInterval(()=>{
   if(mode!==1)return;
-  if(hold){if(value<100){value+=2;beep();}}else{value-=1;}
+  if(hold){if(value<100){value+=2;beep(700,0.015);}} 
+  else {
+    if(value>0){
+      value-=1;
+      beep(200,0.02); // 🔊 низький звук падіння
+    }
+  }
   value=Math.max(0,Math.min(100,value));
   num.innerText=value;
-  updateBars(value);
+  updateBars(value,true); 
   if(value<20)msg.innerText="Ти не тискуєш";
   else if(value<70)msg.innerText="Нормальний 👍";
   else if(value<90)msg.innerText="Потужний 💪";
@@ -125,7 +152,6 @@ btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 
 btn.addEventListener("click",()=>{randomMode();});
 btn.addEventListener("touchend",()=>{if(mode===0)randomMode();});
-
 </script>
 </body>
 </html>
