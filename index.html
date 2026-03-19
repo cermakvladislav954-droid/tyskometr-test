@@ -62,9 +62,12 @@ for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scal
 let mode=0,isRunning=false,hold=false,value=0;
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
 
-// 🔊 аудіо
+// 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(frequency=700,volume=0.03,duration=0.04){
+let soundLock=false; // блокує повторний звук
+function beep(frequency=500,volume=0.04,duration=0.06){
+    if(soundLock)return;
+    soundLock=true;
     let osc=audioCtx.createOscillator();
     let gain=audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
@@ -72,6 +75,7 @@ function beep(frequency=700,volume=0.03,duration=0.04){
     gain.gain.value=volume;
     osc.start();
     osc.stop(audioCtx.currentTime+duration);
+    osc.onended=()=>{soundLock=false;} // дозволяємо новий звук тільки після завершення попереднього
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
@@ -103,12 +107,12 @@ function randomMode(){
 
   let interval=setInterval(()=>{
     let target=steps[idx];
-    if(value<target)value+=Math.random()*3;
-    else if(value>target)value-=Math.random()*3;
+    if(value<target)value+=Math.random()*2.5;
+    else if(value>target)value-=Math.random()*2.5;
     value=Math.max(0,Math.min(100,Math.round(value)));
 
-    // 🔊 звук рідко, але помітно
-    if(Math.random()<0.35 && value<100) beep(700,0.03,0.04);
+    // 🔊 звук для рандому лише під час руху
+    if(Math.random()<0.25 && !soundLock) beep(600,0.03,0.05);
 
     num.innerText=value;
     updateBars(value,false);
@@ -131,11 +135,11 @@ function randomMode(){
 /* Утримання */
 setInterval(()=>{
   if(mode!==1)return;
-  if(hold){if(value<100){value+=2; if(Math.random()<0.3) beep(700,0.03,0.04);}}
+  if(hold){if(value<100){value+=2; beep(700,0.03,0.05);}}
   else{
     if(value>0){
       value-=1;
-      if(Math.random()<0.3) beep(200,0.03,0.05); // низький звук при падінні
+      beep(250,0.03,0.08); // низький, довший звук при падінні
     }
   }
   value=Math.max(0,Math.min(100,value));
