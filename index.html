@@ -30,7 +30,6 @@ body{
   touch-action:none;
 }
 
-/* 🔽 ЩЕ МЕНШЕ */
 .panel{
   background:#0b0f16;
   border-radius:20px;
@@ -172,7 +171,7 @@ let num = document.getElementById("num")
 let msg = document.getElementById("msg")
 let modeBtn = document.getElementById("modeBtn")
 
-/* звук */
+/* 🔊 звук */
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 let lastBeep = 0
 
@@ -230,39 +229,48 @@ modeBtn.onclick = function () {
   modeBtn.innerText = mode === 0 ? "Рандомний" : "Утримання"
 }
 
-/* 🔥 ПЛАВНИЙ РАНДОМ */
+/* 🔥 РАНДОМ ПІДЙОМ-ОПУСКАННЯ */
 function randomMode() {
   if (isRunning || mode !== 0) return
 
   isRunning = true
   resetEffects()
   msg.innerText = "Вимірюється..."
+  value = 0
 
-  let target = Math.floor(Math.random() * 100)
+  let finalValue = Math.floor(Math.random() * 100)
   let steps = 0
+  let direction = 1
+  let oscillations = 0
 
   let interval = setInterval(() => {
 
-    if (value < target) value += Math.random() * 4
-    else if (value > target) value -= Math.random() * 4
+    // коливання
+    value += direction * (Math.random() * 5)
+    if (value >= 100) direction = -1
+    if (value <= 0) direction = 1
+
+    // рахуємо коливання
+    if ((direction === -1 && value > finalValue) || (direction === 1 && value < finalValue)) {
+      oscillations++
+    }
 
     value = Math.max(0, Math.min(100, Math.round(value)))
-
     if (value < 100) beep()
-
     num.innerText = value
     updateBars(value)
 
     steps++
 
-    if (steps > 40 && Math.abs(value - target) < 2) {
-      value = target
-      num.innerText = target
-      updateBars(target)
+    // зупинка після 6-8 коливань
+    if (oscillations > 7 && Math.abs(value - finalValue) < 2) {
+      value = finalValue
+      num.innerText = finalValue
+      updateBars(finalValue)
 
-      if (target >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
-      else if (target >= 70) msg.innerText = "Потужний 💪"
-      else if (target < 20) msg.innerText = "Ти не тискуєш"
+      if (finalValue >= 90) msg.innerText = "КРИТИЧНИЙ ТИСК 🤯"
+      else if (finalValue >= 70) msg.innerText = "Потужний 💪"
+      else if (finalValue < 20) msg.innerText = "Ти не тискуєш"
       else msg.innerText = "Нормальний 👍"
 
       clearInterval(interval)
@@ -272,6 +280,7 @@ function randomMode() {
   }, 60)
 }
 
+/* Утримання */
 setInterval(() => {
   if (mode !== 1) return
 
