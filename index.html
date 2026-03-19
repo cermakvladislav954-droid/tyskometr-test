@@ -42,7 +42,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
-  <div class="subtitle">TM-v2.6 FINAL</div>
+  <div class="subtitle">TM-v2.7 FINAL</div>
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
     <div class="scale" id="scale"></div>
@@ -61,7 +61,7 @@ for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scal
 
 // змінні
 let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
-let touchState=0; // 0=стоп,1=вверх,2=низ
+let touchState=0; // 0=стоп,1=вверх,2=стоп,3=низ
 let touchInterval=null;
 
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
@@ -146,21 +146,23 @@ setInterval(()=>{
   else msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
 },50);
 
-/* Дотик режим */
+/* Дотик режим (весь прямокутник шкали) */
 btn.addEventListener("click",()=>{
   if(mode!==2) return;
-  if(isRunning) return; // блокуємо під час активності
-  touchState=(touchState+1)%3;
+  if(isRunning) return;
+  touchState=(touchState+1)%4;
   clearInterval(touchInterval);
-  if(touchState===0){msg.innerText="Стоп";}
-  else if(touchState===1){
+  if(touchState===0){msg.innerText="Стоп";} // стоп
+  else if(touchState===1){ // піднімається
     msg.innerText="Піднімається";
     touchInterval=setInterval(()=>{
       if(value<100){value+=2; beep(700,0.03,0.05);}
       value=Math.min(value,100);
       num.innerText=value; updateBars(value,true);
     },50);
-  } else if(touchState===2){
+  } else if(touchState===2){ // стоп
+    msg.innerText="Стоп";
+  } else if(touchState===3){ // падає
     msg.innerText="Падає";
     touchInterval=setInterval(()=>{
       if(value>0){value-=2; beep(250,0.03,0.05);}
