@@ -8,48 +8,69 @@
 <style>
 html, body { margin:0; padding:0; overflow:hidden; height:100%; }
 body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-family:'Orbitron',sans-serif; display:flex; justify-content:center; align-items:center; -webkit-user-select:none; user-select:none; touch-action:none; }
+
 .panel { background:#0b0f16; border-radius:20px; padding:16px; width:75%; max-width:300px; box-shadow:0 0 30px rgba(0,0,0,0.8); border:1px solid #2b2b2b; display:flex; flex-direction:column; align-items:center; }
+
 .title { font-size:20px; text-align:center; color:#8ff5ff; margin-bottom:5px; }
 .subtitle { font-size:11px; text-align:center; color:#aaa; margin-bottom:12px; }
+
 .scaleBox { background:#05070a; border-radius:12px; padding:10px; border:1px solid #333; cursor:pointer; width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; height:70px; box-sizing:border-box; }
 .scale { display:flex; gap:3px; justify-content:center; width:100%; height:100%; align-items:flex-end; }
 .bar { width:6px; background:#222; border-radius:5px; transition:0.05s linear; }
+
 .bottom { display:flex; gap:8px; margin-top:12px; align-items:center; width:100%; }
 .displayBox { flex:1; background:#05070a; border-radius:12px; padding:10px; border:1px solid #333; text-align:center; }
 .number { font-size:36px; line-height:36px; }
+
 .modeBtn { padding:10px; height:36px; border-radius:5px; border:none; font-size:14px; font-family:'Roboto',sans-serif; font-weight:500; background:#00eaff; color:black; cursor:pointer; box-shadow:0 0 10px #00eaff; transition:0.2s; }
 .modeBtn:hover { background:#00c0d0; }
+
 .message { font-size:11px; text-align:center; margin-top:8px; color:#ccc; }
+
 .flash-danger { animation:flashDanger 1s infinite; }
 @keyframes flashDanger { 50%{background:#5a0000;} }
 .dangerNumber { color:#ff2a2a; }
+
+/* Новий режим: руний слайдер */
+.sliderBox { width:100%; height:30px; background:#222; border-radius:10px; margin-top:15px; position:relative; display:none; }
+.slider { width:30px; height:30px; background:#00eaff; border-radius:50%; position:absolute; top:0; left:0; cursor:pointer; }
 </style>
 </head>
 <body>
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
-  <div class="subtitle">TM-v2.7 FINAL</div>
+  <div class="subtitle">TM-v2.8 FINAL</div>
+
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
     <div class="scale" id="scale"></div>
   </div>
+
   <div class="bottom">
     <div class="displayBox"><div class="number" id="num">0</div></div>
     <button class="modeBtn" id="modeBtn">Рандомний</button>
   </div>
+
   <div class="message" id="msg">Натисни або утримуй</div>
+
+  <!-- Рунний слайдер -->
+  <div class="sliderBox" id="sliderBox">
+    <div class="slider" id="slider"></div>
+  </div>
 </div>
 
 <script>
 // шкала
 let scale=document.getElementById("scale");
 for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";b.style.height="26px";scale.appendChild(b);}
-
-// змінні
 let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
 let touchState=0,touchInterval=null;
 
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
+
+let sliderBox=document.getElementById("sliderBox");
+let slider=document.getElementById("slider");
+let dragging=false;
 
 // 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -61,7 +82,7 @@ function resetEffects(){document.body.classList.remove("flash-danger");num.class
 function updateBars(val,final=false){
   let bars=document.querySelectorAll(".bar");
   bars.forEach((b,i)=>{
-    let h=10+16*(val/100); // динамічна висота
+    let h=10+16*(val/100);
     b.style.height=`${h}px`;
     if(i<val/4){if(i<8)b.style.background="#35ff5c";else if(i<16)b.style.background="#f6ff35";else if(i<22)b.style.background="#ff9d00";else b.style.background="#ff2a2a";}
     else{b.style.background="#222";}
@@ -71,11 +92,18 @@ function updateBars(val,final=false){
 }
 
 // перемикання режимів
-modeBtn.onclick=function(){if(isRunning||cooldown||touchInterval) return; mode=(mode+1)%3; resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
-if(mode===0) modeBtn.innerText="Рандомний"; else if(mode===1) modeBtn.innerText="Утримання"; else modeBtn.innerText="Дотик";
-msg.innerText="Режим змінено";}
+modeBtn.onclick=function(){
+  if(isRunning||cooldown||touchInterval) return;
+  mode=(mode+1)%4; resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
+  sliderBox.style.display = (mode===3) ? "block" : "none";
+  if(mode===0) modeBtn.innerText="Рандомний";
+  else if(mode===1) modeBtn.innerText="Утримання";
+  else if(mode===2) modeBtn.innerText="Дотик";
+  else if(mode===3) modeBtn.innerText="Рунний";
+  msg.innerText="Режим змінено";
+}
 
-// Рандом
+// 🔥 Рандом
 function randomMode(){if(isRunning||mode!==0||cooldown) return; isRunning=true; resetEffects(); msg.innerText="Вимірюється..."; value=0;
 let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)]; let finalValue=Math.floor(Math.random()*100); steps.push(finalValue);
 let idx=0; let interval=setInterval(()=>{
@@ -108,7 +136,24 @@ else if(touchState===2){msg.innerText="Стоп";}
 else if(touchState===3){msg.innerText="Падає"; touchInterval=setInterval(()=>{if(value>0){value-=2; beep(250,0.03,0.05);} value=Math.max(value,0); num.innerText=value; updateBars(value,true);},50);}
 }
 
-// Події
+// Drag slider
+function setValueFromSlider(x){
+  let rect=sliderBox.getBoundingClientRect();
+  let val=Math.round(((x-rect.left)/rect.width)*100);
+  val=Math.max(0,Math.min(100,val));
+  value=val; num.innerText=value; updateBars(value,true);
+  slider.style.left=(val/100)*(rect.width-slider.offsetWidth)+"px";
+}
+
+slider.addEventListener("mousedown",()=>{dragging=true;});
+document.addEventListener("mouseup",()=>{dragging=false;});
+document.addEventListener("mousemove",(e)=>{if(mode===3 && dragging){setValueFromSlider(e.clientX);}});
+
+slider.addEventListener("touchstart",(e)=>{dragging=true;});
+document.addEventListener("touchend",(e)=>{dragging=false;});
+document.addEventListener("touchmove",(e)=>{if(mode===3 && dragging){setValueFromSlider(e.touches[0].clientX);}});
+
+// Події для утримання/дотик/рандом
 btn.addEventListener("mousedown",()=>{if(mode===1) hold=true; handleTouchMode();});
 btn.addEventListener("mouseup",()=>{hold=false;});
 btn.addEventListener("mouseleave",()=>{hold=false;});
@@ -119,6 +164,7 @@ btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 // Запуск рандому
 btn.addEventListener("click",()=>{if(mode===0) randomMode();});
 btn.addEventListener("touchend",()=>{if(mode===0) randomMode();});
+
 </script>
 </body>
 </html>
