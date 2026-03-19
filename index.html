@@ -42,7 +42,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
-  <div class="subtitle">TM-v2.5 FINAL</div>
+  <div class="subtitle">TM-v2.6 FINAL</div>
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
     <div class="scale" id="scale"></div>
@@ -59,6 +59,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 let scale=document.getElementById("scale");
 for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scale.appendChild(b);}
 
+// змінні
 let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
 let touchState=0; // 0=стоп,1=вверх,2=низ
 let touchInterval=null;
@@ -68,7 +69,7 @@ let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=do
 // 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 let soundLock=false;
-function beep(frequency=500,volume=0.04,duration=0.06){
+function beep(frequency=500,volume=0.03,duration=0.05){
     if(soundLock)return;
     soundLock=true;
     let osc=audioCtx.createOscillator();
@@ -93,48 +94,40 @@ function updateBars(val,final=false){
   else{num.classList.remove("dangerNumber");document.body.classList.remove("flash-danger");}
 }
 
-// перемикання режимів (не можна під час вимірювання)
+// перемикання режимів (заблоковано під час активності)
 modeBtn.onclick=function(){
-  if(isRunning||cooldown||touchInterval){return;}
-  mode=(mode+1)%3; 
-  resetEffects();
-  value=0;num.innerText=0;updateBars(0);touchState=0;
-  if(mode===0)modeBtn.innerText="Рандомний";
-  else if(mode===1)modeBtn.innerText="Утримання";
+  if(isRunning||cooldown||touchInterval) return;
+  mode=(mode+1)%3;
+  resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
+  if(mode===0) modeBtn.innerText="Рандомний";
+  else if(mode===1) modeBtn.innerText="Утримання";
   else modeBtn.innerText="Дотик";
   msg.innerText="Режим змінено";
 }
 
 // 🔥 Рандом
 function randomMode(){
-  if(isRunning||mode!==0||cooldown)return;
-  isRunning=true;
-  resetEffects();
-  msg.innerText="Вимірюється...";
-  value=0;
+  if(isRunning||mode!==0||cooldown) return;
+  isRunning=true; resetEffects(); msg.innerText="Вимірюється..."; value=0;
   let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)];
   let finalValue=Math.floor(Math.random()*100);
   steps.push(finalValue);
   let idx=0;
   let interval=setInterval(()=>{
     let target=steps[idx];
-    if(value<target)value+=Math.random()*2.5;
-    else if(value>target)value-=Math.random()*2.5;
+    if(value<target) value+=Math.random()*2.5;
+    else if(value>target) value-=Math.random()*2.5;
     value=Math.max(0,Math.min(100,Math.round(value)));
     if(Math.random()<0.25 && !soundLock) beep(600,0.03,0.05);
-    num.innerText=value;updateBars(value,false);
-    if(Math.abs(value-target)<2){idx++;}
+    num.innerText=value; updateBars(value,false);
+    if(Math.abs(value-target)<2) idx++;
     if(idx>=steps.length){
-      value=finalValue;
-      num.innerText=finalValue;
-      updateBars(finalValue,true);
-      if(finalValue>=90)msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
-      else if(finalValue>=70)msg.innerText="Потужний 💪";
-      else if(finalValue<20)msg.innerText="Ти не тискуєш";
+      value=finalValue; num.innerText=finalValue; updateBars(finalValue,true);
+      if(finalValue>=90) msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
+      else if(finalValue>=70) msg.innerText="Потужний 💪";
+      else if(finalValue<20) msg.innerText="Ти не тискуєш";
       else msg.innerText="Нормальний 👍";
-      clearInterval(interval);
-      isRunning=false;
-      cooldown=true;
+      clearInterval(interval); isRunning=false; cooldown=true;
       setTimeout(()=>{cooldown=false;},1300);
     }
   },50);
@@ -142,22 +135,21 @@ function randomMode(){
 
 /* Утримання */
 setInterval(()=>{
-  if(mode!==1)return;
+  if(mode!==1) return;
   if(hold){if(value<100){value+=2; beep(700,0.03,0.05);}}
   else{if(value>0){value-=1; beep(250,0.03,0.08);}}
   value=Math.max(0,Math.min(100,value));
-  num.innerText=value;
-  updateBars(value,true);
-  if(value<20)msg.innerText="Ти не тискуєш";
-  else if(value<70)msg.innerText="Нормальний 👍";
-  else if(value<90)msg.innerText="Потужний 💪";
+  num.innerText=value; updateBars(value,true);
+  if(value<20) msg.innerText="Ти не тискуєш";
+  else if(value<70) msg.innerText="Нормальний 👍";
+  else if(value<90) msg.innerText="Потужний 💪";
   else msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
 },50);
 
 /* Дотик режим */
 btn.addEventListener("click",()=>{
-  if(mode!==2)return;
-  // заблоковано перемикання режимів під час активності
+  if(mode!==2) return;
+  if(isRunning) return; // блокуємо під час активності
   touchState=(touchState+1)%3;
   clearInterval(touchInterval);
   if(touchState===0){msg.innerText="Стоп";}
@@ -168,7 +160,7 @@ btn.addEventListener("click",()=>{
       value=Math.min(value,100);
       num.innerText=value; updateBars(value,true);
     },50);
-  }else if(touchState===2){
+  } else if(touchState===2){
     msg.innerText="Падає";
     touchInterval=setInterval(()=>{
       if(value>0){value-=2; beep(250,0.03,0.05);}
@@ -178,18 +170,17 @@ btn.addEventListener("click",()=>{
   }
 });
 
-// утримання
-btn.addEventListener("mousedown",()=>{if(mode===1)hold=true;});
+// Утримання події
+btn.addEventListener("mousedown",()=>{if(mode===1) hold=true;});
 btn.addEventListener("mouseup",()=>{hold=false;});
 btn.addEventListener("mouseleave",()=>{hold=false;});
-btn.addEventListener("touchstart",(e)=>{e.preventDefault();if(mode===1)hold=true;});
+btn.addEventListener("touchstart",(e)=>{e.preventDefault();if(mode===1) hold=true;});
 btn.addEventListener("touchend",(e)=>{e.preventDefault();hold=false;});
 btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 
-// запуск рандому
-btn.addEventListener("click",()=>{if(mode===0)randomMode();});
-btn.addEventListener("touchend",()=>{if(mode===0)randomMode();});
-
+// Запуск рандому
+btn.addEventListener("click",()=>{if(mode===0) randomMode();});
+btn.addEventListener("touchend",()=>{if(mode===0) randomMode();});
 </script>
 </body>
 </html>
