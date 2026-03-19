@@ -59,12 +59,12 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 let scale=document.getElementById("scale");
 for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";scale.appendChild(b);}
 
-let mode=0,isRunning=false,hold=false,value=0;
+let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
 
 // 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-let soundLock=false; // блокує повторний звук
+let soundLock=false;
 function beep(frequency=500,volume=0.04,duration=0.06){
     if(soundLock)return;
     soundLock=true;
@@ -75,7 +75,7 @@ function beep(frequency=500,volume=0.04,duration=0.06){
     gain.gain.value=volume;
     osc.start();
     osc.stop(audioCtx.currentTime+duration);
-    osc.onended=()=>{soundLock=false;} // дозволяємо новий звук тільки після завершення попереднього
+    osc.onended=()=>{soundLock=false;}
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
@@ -90,11 +90,11 @@ function updateBars(val,final=false){
   else{num.classList.remove("dangerNumber");document.body.classList.remove("flash-danger");}
 }
 
-modeBtn.onclick=function(){if(isRunning)return;mode=mode===0?1:0;resetEffects();value=0;num.innerText=0;updateBars(0);msg.innerText="Режим змінено";modeBtn.innerText=mode===0?"Рандомний":"Утримання";}
+modeBtn.onclick=function(){if(isRunning||cooldown)return;mode=mode===0?1:0;resetEffects();value=0;num.innerText=0;updateBars(0);msg.innerText="Режим змінено";modeBtn.innerText=mode===0?"Рандомний":"Утримання";}
 
-// 🔥 Рандом із плавним “імпульсом”
+// 🔥 Рандом із плавним імпульсом та cooldown
 function randomMode(){
-  if(isRunning||mode!==0)return;
+  if(isRunning||mode!==0||cooldown)return;
   isRunning=true;
   resetEffects();
   msg.innerText="Вимірюється...";
@@ -111,7 +111,6 @@ function randomMode(){
     else if(value>target)value-=Math.random()*2.5;
     value=Math.max(0,Math.min(100,Math.round(value)));
 
-    // 🔊 звук для рандому лише під час руху
     if(Math.random()<0.25 && !soundLock) beep(600,0.03,0.05);
 
     num.innerText=value;
@@ -128,6 +127,9 @@ function randomMode(){
       else msg.innerText="Нормальний 👍";
       clearInterval(interval);
       isRunning=false;
+      // 🔥 cooldown 1.3 секунди
+      cooldown=true;
+      setTimeout(()=>{cooldown=false;},1300);
     }
   },50);
 }
@@ -139,7 +141,7 @@ setInterval(()=>{
   else{
     if(value>0){
       value-=1;
-      beep(250,0.03,0.08); // низький, довший звук при падінні
+      beep(250,0.03,0.08);
     }
   }
   value=Math.max(0,Math.min(100,value));
