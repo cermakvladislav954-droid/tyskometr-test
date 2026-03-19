@@ -11,7 +11,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 .panel{background:#0b0f16;border-radius:20px;padding:16px;width:75%;max-width:300px;box-shadow:0 0 30px rgba(0,0,0,0.8);border:1px solid #2b2b2b;}
 .title{font-size:20px;text-align:center;color:#8ff5ff;margin-bottom:5px;}
 .subtitle{font-size:11px;text-align:center;color:#aaa;margin-bottom:12px;}
-.scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.scaleBox{background:#05070a;border-radius:12px;padding:10px;border:1px solid #333;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:70px;}
 .scale{display:flex;gap:3px;justify-content:center;margin:8px 0;width:100%;}
 .bar{width:6px;height:26px;background:#222;border-radius:5px;}
 .bottom{display:flex;gap:8px;margin-top:12px;align-items:center;}
@@ -43,7 +43,6 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 <div class="panel">
   <div class="title">🇺🇦 ТИСКОМЕТР</div>
   <div class="subtitle">TM-v2.7 FINAL</div>
-  <!-- 🔹 scaleBox тепер реагує на весь прямокутник -->
   <div class="scaleBox" id="btn">
     <div>ШКАЛА ТИСКУ</div>
     <div class="scale" id="scale"></div>
@@ -147,14 +146,14 @@ setInterval(()=>{
   else msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
 },50);
 
-/* Дотик режим (весь прямокутник шкали) */
-btn.addEventListener("click",()=>{
+/* Дотик режим (весь scaleBox) */
+function handleTouchMode(){
   if(mode!==2) return;
   if(isRunning) return;
   touchState=(touchState+1)%4;
   clearInterval(touchInterval);
-  if(touchState===0){msg.innerText="Стоп";} // стоп
-  else if(touchState===1){ // піднімається
+  if(touchState===0){msg.innerText="Стоп";} 
+  else if(touchState===1){ // вверх
     msg.innerText="Піднімається";
     touchInterval=setInterval(()=>{
       if(value<100){value+=2; beep(700,0.03,0.05);}
@@ -163,7 +162,7 @@ btn.addEventListener("click",()=>{
     },50);
   } else if(touchState===2){ // стоп
     msg.innerText="Стоп";
-  } else if(touchState===3){ // падає
+  } else if(touchState===3){ // вниз
     msg.innerText="Падає";
     touchInterval=setInterval(()=>{
       if(value>0){value-=2; beep(250,0.03,0.05);}
@@ -171,13 +170,13 @@ btn.addEventListener("click",()=>{
       num.innerText=value; updateBars(value,true);
     },50);
   }
-});
+}
 
-// Утримання події
-btn.addEventListener("mousedown",()=>{if(mode===1) hold=true;});
+// Події для дотик/утримання
+btn.addEventListener("mousedown",()=>{if(mode===1) hold=true; handleTouchMode();});
 btn.addEventListener("mouseup",()=>{hold=false;});
 btn.addEventListener("mouseleave",()=>{hold=false;});
-btn.addEventListener("touchstart",(e)=>{e.preventDefault();if(mode===1) hold=true;});
+btn.addEventListener("touchstart",(e)=>{e.preventDefault();if(mode===1) hold=true; handleTouchMode();});
 btn.addEventListener("touchend",(e)=>{e.preventDefault();hold=false;});
 btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 
