@@ -19,7 +19,7 @@ body{background:linear-gradient(180deg,#02162b,#000814);color:white;font-family:
 .number{font-size:36px;text-align:center;line-height:36px;}
 .modeBtn{
     padding:10px;
-    height:36px; /* висота як показник */
+    height:36px;
     border-radius:5px;
     border:none;
     font-size:14px;
@@ -64,13 +64,18 @@ let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=do
 
 // 🔊 аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-function beep(frequency=700,volume=0.01,duration=0.03){ // зменшили звук
+let lastBeepTime=0;
+function beep(frequency=700,volume=0.03,duration=0.04){ // гучніший, але рідкісніший
+    let now=audioCtx.currentTime;
+    if(now-lastBeepTime<0.15) return; // пауза між піками
+    lastBeepTime=now;
+
     let osc=audioCtx.createOscillator();
     let gain=audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.frequency.value=frequency;
     gain.gain.value=volume;
-    osc.start(); osc.stop(audioCtx.currentTime+duration);
+    osc.start(); osc.stop(now+duration);
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
@@ -102,19 +107,19 @@ function randomMode(){
 
   let interval=setInterval(()=>{
     let target=steps[idx];
-    if(value<target)value+=Math.random()*3; // менше стрибків
+    if(value<target)value+=Math.random()*3;
     else if(value>target)value-=Math.random()*3;
     value=Math.max(0,Math.min(100,Math.round(value)));
-    
-    if(value<100 && Math.random()<0.3)beep(700,0.008); // рідкіший, тихий звук
+
+    if(value<100 && Math.random()<0.4) beep(700,0.03,0.04); // рідкіший, гучний звук
     num.innerText=value;
     updateBars(value,false);
-    
+
     if(Math.abs(value-target)<2){idx++;}
     if(idx>=steps.length){
       value=finalValue;
       num.innerText=finalValue;
-      updateBars(finalValue,true); // червоний тільки фінал
+      updateBars(finalValue,true);
       if(finalValue>=90)msg.innerText="КРИТИЧНИЙ ТИСК 🤯";
       else if(finalValue>=70)msg.innerText="Потужний 💪";
       else if(finalValue<20)msg.innerText="Ти не тискуєш";
@@ -128,16 +133,16 @@ function randomMode(){
 /* Утримання */
 setInterval(()=>{
   if(mode!==1)return;
-  if(hold){if(value<100){value+=2; if(Math.random()<0.4)beep(700,0.008);}} // тихіший, рідкіший звук
-  else {
+  if(hold){if(value<100){value+=2; if(Math.random()<0.3) beep(700,0.03,0.04);}}
+  else{
     if(value>0){
       value-=1;
-      if(Math.random()<0.4)beep(200,0.012); // низький звук падіння, рідкіший
+      if(Math.random()<0.3) beep(200,0.03,0.05); // низький, рідкісний звук при падінні
     }
   }
   value=Math.max(0,Math.min(100,value));
   num.innerText=value;
-  updateBars(value,true); 
+  updateBars(value,true);
   if(value<20)msg.innerText="Ти не тискуєш";
   else if(value<70)msg.innerText="Нормальний 👍";
   else if(value<90)msg.innerText="Потужний 💪";
