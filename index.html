@@ -69,15 +69,21 @@ let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
 let dragging=false;
 
-// 🔊 Звук при тиску >= 90
+// 🔊 Звуки при тиску >= 90
 let dangerSound = new Audio("sound/2.mp3");
 dangerSound.loop = true;
 dangerSound.volume = 0.6;
+
+let highSound = new Audio("sound/1.mp3");
+highSound.loop = true;
+highSound.volume = 0.6;
+
 let dangerSoundPlaying = false;
 
 // Розблокування аудіо на мобільних
 document.addEventListener("click", () => {
   dangerSound.play().then(() => dangerSound.pause()).catch(() => {});
+  highSound.play().then(() => highSound.pause()).catch(() => {});
 }, { once: true });
 
 function startDangerSound() {
@@ -85,6 +91,8 @@ function startDangerSound() {
   dangerSoundPlaying = true;
   dangerSound.currentTime = 0;
   dangerSound.play().catch(() => {});
+  highSound.currentTime = 0;
+  highSound.play().catch(() => {});
 }
 
 function stopDangerSound() {
@@ -92,6 +100,8 @@ function stopDangerSound() {
   dangerSoundPlaying = false;
   dangerSound.pause();
   dangerSound.currentTime = 0;
+  highSound.pause();
+  highSound.currentTime = 0;
 }
 
 // 🔊 Аудіо beep
