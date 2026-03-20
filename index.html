@@ -68,41 +68,59 @@ let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
 let dragging=false;
 
-// 🔊 Аудіо
+// 🔊 AudioContext
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 let soundLock=false;
 function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
 
-// 🔊 Звук при 90+
+// 🔊 Розблокування аудіо на телефоні при першому торканні
+let audioUnlocked = false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  audioCtx.resume();
+  let s2 = new Audio("sound/2.mp3");
+  s2.volume = 0;
+  s2.play().then(()=>s2.pause()).catch(()=>{});
+}
+document.addEventListener("touchstart", unlockAudio, {once:true});
+document.addEventListener("click", unlockAudio, {once:true});
+
+// 🔊 Звук 90+
 let highLoop = null;
 let voiceSound = null;
+let voicePlayed = false;
 
 function startHighSound(){
-  if(!highLoop){
-    function playTone(){
-      let osc = audioCtx.createOscillator();
-      let gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.value = 220;
-      osc.type = "sawtooth";
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 1.5);
-    }
-    playTone();
-    highLoop = setInterval(playTone, 2300);
+  // Голос — щоразу при новому підйомі до 90+
+  if(!voicePlayed){
+    voicePlayed = true;
+    voiceSound = new Audio("sound/2.mp3");
+    voiceSound.volume = 0.8;
+    voiceSound.play().catch(()=>{});
   }
-  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
-  voiceSound = new Audio("sound/2.mp3");
-  voiceSound.volume = 0.8;
-  voiceSound.play().catch(()=>{});
+  // Тон — по колу, не перезапускати якщо вже грає
+  if(highLoop) return;
+  function playTone(){
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 220;
+    osc.type = "sawtooth";
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 1.5);
+  }
+  playTone();
+  highLoop = setInterval(playTone, 2300);
 }
 
 function stopHighSound(){
   if(highLoop){ clearInterval(highLoop); highLoop = null; }
   if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
+  voicePlayed = false;
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
