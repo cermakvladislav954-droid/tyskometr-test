@@ -71,6 +71,10 @@ let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
 let dragging=false, prevSliderValue=0;
 
+// 🔊 Аудіо контекст — має бути першим
+let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+let soundLock=false;
+
 // 🔊 Звук 1
 let highSound = new Audio("sound/1.mp3");
 highSound.volume = 0.6;
@@ -114,9 +118,7 @@ function stopHighSound(){
   highSound2.currentTime = 0;
 }
 
-// 🔊 Аудіо
-let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-let soundLock=false;
+// 🔊 Аудіо beep
 function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
