@@ -75,6 +75,7 @@ let dragging=false, prevSliderValue=0;
 let highSound = new Audio("sound/1.mp3");
 highSound.volume = 0.6;
 let highLoop = null;
+let voiceSound = null;
 
 // 🔓 щоб працювало на телефоні
 document.addEventListener("click", () => {
@@ -83,9 +84,9 @@ document.addEventListener("click", () => {
 
 function startHighSound(){
   if(highLoop) return;
-  let voice = new Audio("sound/2.mp3");
-  voice.volume = 0.8;
-  voice.play().catch(()=>{});
+  voiceSound = new Audio("sound/2.mp3");
+  voiceSound.volume = 0.8;
+  voiceSound.play().catch(()=>{});
   function playTone(){
     let osc = audioCtx.createOscillator();
     let gain = audioCtx.createGain();
@@ -98,8 +99,10 @@ function startHighSound(){
     osc.start();
     osc.stop(audioCtx.currentTime + 1.5);
   }
-  playTone();
-  highLoop = setInterval(playTone, 2300);
+
+  function stopHighSound(){
+  if(highLoop){ clearInterval(highLoop); highLoop = null; }
+  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
 }
 
 function stopHighSound(){
