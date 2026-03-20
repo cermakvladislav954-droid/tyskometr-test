@@ -110,7 +110,7 @@ function playTone(){
 }
 
 function startHighSound(){
-  if(highLoop) return;
+  stopHighSound();
   playTone();
   highLoop = setInterval(playTone, 2300);
 }
