@@ -88,12 +88,14 @@ document.addEventListener("click", unlockAudio, {once:true});
 
 // 🔊 Звук 90+
 let highLoop = null;
+let currentVoice = null; // зберігаємо поточний голос щоб зупиняти
 
 function playTone(){
-  // Голос + тон одночасно
-  let v = new Audio("sound/2.mp3");
-  v.volume = 0.8;
-  v.play().catch(()=>{});
+  // Зупиняємо попередній голос якщо ще грає
+  if(currentVoice){ currentVoice.pause(); currentVoice.currentTime=0; }
+  currentVoice = new Audio("sound/2.mp3");
+  currentVoice.volume = 0.8;
+  currentVoice.play().catch(()=>{});
 
   let osc = audioCtx.createOscillator();
   let gain = audioCtx.createGain();
@@ -115,6 +117,7 @@ function startHighSound(){
 
 function stopHighSound(){
   if(highLoop){ clearInterval(highLoop); highLoop = null; }
+  if(currentVoice){ currentVoice.pause(); currentVoice.currentTime=0; currentVoice=null; }
 }
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
