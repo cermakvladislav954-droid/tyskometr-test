@@ -83,10 +83,14 @@ document.addEventListener("click", () => {
 
 function startHighSound(){
   if(highLoop) return;
-  highLoop = setInterval(()=>{
+  audioCtx.resume().then(()=>{
     highSound.currentTime = 0;
     highSound.play();
-  },2300); // 2с звук + ~0.3 пауза
+    highLoop = setInterval(()=>{
+      highSound.currentTime = 0;
+      highSound.play();
+    },2300);
+  });
 }
 
 function stopHighSound(){
