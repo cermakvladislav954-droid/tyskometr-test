@@ -31,7 +31,6 @@ body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-fam
 @keyframes flashDanger { 50%{background:#5a0000;} }
 .dangerNumber { color:#ff2a2a; }
 
-/* Рунний слайдер */
 .sliderBox { width:100%; height:30px; background:#222; border-radius:10px; margin-top:15px; position:relative; display:none; }
 .slider { width:30px; height:30px; background:#00eaff; border-radius:50%; position:absolute; top:0; left:0; cursor:pointer; }
 </style>
@@ -59,34 +58,32 @@ body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-fam
 </div>
 
 <script>
-// шкала
 let scale=document.getElementById("scale");
 for(let i=0;i<25;i++){let b=document.createElement("div");b.className="bar";b.style.height="26px";scale.appendChild(b);}
 let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
 let touchState=0,touchInterval=null;
 
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
-
 let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
-let dragging=false, prevSliderValue=0;
+let dragging=false;
 
-// 🔊 ДОДАНО: твій звук
-let highSound = new Audio("sound/1.mp3");
-highSound.volume = 0.6;
+// 🔊 Аудіо
+let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+let soundLock=false;
+function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
+
+// 🔊 Звук при 90+
 let highLoop = null;
 let voiceSound = null;
 
-// 🔓 щоб працювало на телефоні
-document.addEventListener("click", () => {
-  highSound.play().then(()=>highSound.pause()).catch(()=>{});
-}, { once: true });
-
 function startHighSound(){
   if(highLoop) return;
+  // Голос — один раз
   voiceSound = new Audio("sound/2.mp3");
   voiceSound.volume = 0.8;
   voiceSound.play().catch(()=>{});
+  // Фоновий тон — по колу
   function playTone(){
     let osc = audioCtx.createOscillator();
     let gain = audioCtx.createGain();
@@ -99,25 +96,14 @@ function startHighSound(){
     osc.start();
     osc.stop(audioCtx.currentTime + 1.5);
   }
-
-  function stopHighSound(){
-  if(highLoop){ clearInterval(highLoop); highLoop = null; }
-  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
+  playTone();
+  highLoop = setInterval(playTone, 2300);
 }
 
 function stopHighSound(){
-  if(highLoop){
-    clearInterval(highLoop);
-    highLoop = null;
-  }
-  highSound.pause();
-  highSound.currentTime = 0;
+  if(highLoop){ clearInterval(highLoop); highLoop = null; }
+  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
 }
-
-// 🔊 Аудіо
-let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-let soundLock=false;
-function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
 
 function resetEffects(){document.body.classList.remove("flash-danger");num.classList.remove("dangerNumber");}
 
@@ -133,20 +119,20 @@ function updateBars(val,final=false){
   if(final && val>=90){
     num.classList.add("dangerNumber");
     document.body.classList.add("flash-danger");
-    startHighSound(); // 🔊 ТІЛЬКИ ДОДАНО
+    startHighSound();
   } else {
     num.classList.remove("dangerNumber");
     document.body.classList.remove("flash-danger");
-    stopHighSound(); // 🔊 ТІЛЬКИ ДОДАНО
+    stopHighSound();
   }
 }
-
-// ДАЛІ ВСЕ ТВОЄ БЕЗ ЗМІН ↓↓↓
 
 modeBtn.onclick=function(){
   if(isRunning||cooldown) return;
   clearInterval(touchInterval); touchInterval=null; touchState=0;
-  mode=(mode+1)%4; resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
+  stopHighSound(); resetEffects();
+  value=0; num.innerText=0; updateBars(0);
+  mode=(mode+1)%4;
   sliderBox.style.display = (mode===3) ? "block" : "none";
   if(mode===0) modeBtn.innerText="Рандомний";
   else if(mode===1) modeBtn.innerText="Утримання";
@@ -213,7 +199,6 @@ btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 
 btn.addEventListener("click",()=>{if(mode===0) randomMode();});
 btn.addEventListener("touchend",()=>{if(mode===0) randomMode();});
-
 </script>
 </body>
 </html>
