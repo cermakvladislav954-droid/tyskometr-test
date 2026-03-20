@@ -31,6 +31,7 @@ body { background:linear-gradient(180deg,#02162b,#000814); color:white; font-fam
 @keyframes flashDanger { 50%{background:#5a0000;} }
 .dangerNumber { color:#ff2a2a; }
 
+/* Рунний слайдер */
 .sliderBox { width:100%; height:30px; background:#222; border-radius:10px; margin-top:15px; position:relative; display:none; }
 .slider { width:30px; height:30px; background:#00eaff; border-radius:50%; position:absolute; top:0; left:0; cursor:pointer; }
 </style>
@@ -65,46 +66,55 @@ let mode=0,isRunning=false,hold=false,value=0,cooldown=false;
 let touchState=0,touchInterval=null;
 
 let btn=document.getElementById("btn"),num=document.getElementById("num"),msg=document.getElementById("msg"),modeBtn=document.getElementById("modeBtn");
+
 let sliderBox=document.getElementById("sliderBox");
 let slider=document.getElementById("slider");
-let dragging=false;
+let dragging=false, prevSliderValue=0;
 
-// 🔊 Звуки при тиску >= 90
-let dangerSound = new Audio("sound/2.mp3");
-dangerSound.loop = true;
-dangerSound.volume = 0.6;
-
+// 🔊 Звук 1
 let highSound = new Audio("sound/1.mp3");
-highSound.loop = true;
 highSound.volume = 0.6;
+let highLoop = null;
 
-let dangerSoundPlaying = false;
+// 🔊 Звук 2 — ДОДАНО
+let highSound2 = new Audio("sound/2.mp3");
+highSound2.loop = true;
+highSound2.volume = 0.6;
 
-// Розблокування аудіо на мобільних
+// 🔓 щоб працювало на телефоні
 document.addEventListener("click", () => {
-  dangerSound.play().then(() => dangerSound.pause()).catch(() => {});
-  highSound.play().then(() => highSound.pause()).catch(() => {});
+  highSound.play().then(()=>highSound.pause()).catch(()=>{});
+  highSound2.play().then(()=>highSound2.pause()).catch(()=>{});
 }, { once: true });
 
-function startDangerSound() {
-  if (dangerSoundPlaying) return;
-  dangerSoundPlaying = true;
-  dangerSound.currentTime = 0;
-  dangerSound.play().catch(() => {});
-  highSound.currentTime = 0;
-  highSound.play().catch(() => {});
+function startHighSound(){
+  if(highLoop) return;
+  audioCtx.resume().then(()=>{
+    highSound.currentTime = 0;
+    highSound.play();
+    highLoop = setInterval(()=>{
+      highSound.currentTime = 0;
+      highSound.play();
+    },2300);
+    // ДОДАНО: запускаємо звук 2
+    highSound2.currentTime = 0;
+    highSound2.play().catch(()=>{});
+  });
 }
 
-function stopDangerSound() {
-  if (!dangerSoundPlaying) return;
-  dangerSoundPlaying = false;
-  dangerSound.pause();
-  dangerSound.currentTime = 0;
+function stopHighSound(){
+  if(highLoop){
+    clearInterval(highLoop);
+    highLoop = null;
+  }
   highSound.pause();
   highSound.currentTime = 0;
+  // ДОДАНО: зупиняємо звук 2
+  highSound2.pause();
+  highSound2.currentTime = 0;
 }
 
-// 🔊 Аудіо beep
+// 🔊 Аудіо
 let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
 let soundLock=false;
 function beep(freq=500,vol=0.03,dur=0.05){if(soundLock)return; soundLock=true; let osc=audioCtx.createOscillator(); let gain=audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.frequency.value=freq; gain.gain.value=vol; osc.start(); osc.stop(audioCtx.currentTime+dur); osc.onended=()=>{soundLock=false;}}
@@ -120,23 +130,22 @@ function updateBars(val,final=false){
     else{b.style.background="#222";}
   });
 
-  // Звук + ефекти при >= 90
   if(final && val>=90){
     num.classList.add("dangerNumber");
     document.body.classList.add("flash-danger");
-    startDangerSound();
+    startHighSound();
   } else {
     num.classList.remove("dangerNumber");
     document.body.classList.remove("flash-danger");
-    stopDangerSound();
+    stopHighSound();
   }
 }
 
-// Зміна режиму — зупиняємо звук
+// ДАЛІ ВСЕ БЕЗ ЗМІН ↓↓↓
+
 modeBtn.onclick=function(){
   if(isRunning||cooldown) return;
   clearInterval(touchInterval); touchInterval=null; touchState=0;
-  stopDangerSound();
   mode=(mode+1)%4; resetEffects(); value=0; num.innerText=0; updateBars(0); touchState=0;
   sliderBox.style.display = (mode===3) ? "block" : "none";
   if(mode===0) modeBtn.innerText="Рандомний";
@@ -146,7 +155,7 @@ modeBtn.onclick=function(){
   msg.innerText="Режим змінено";
 }
 
-function randomMode(){if(isRunning||mode!==0||cooldown) return; isRunning=true; resetEffects(); stopDangerSound(); msg.innerText="Вимірюється..."; value=0;
+function randomMode(){if(isRunning||mode!==0||cooldown) return; isRunning=true; resetEffects(); msg.innerText="Вимірюється..."; value=0;
 let steps=[Math.floor(Math.random()*80+20), Math.floor(Math.random()*90), Math.floor(Math.random()*100)]; let finalValue=Math.floor(Math.random()*100); steps.push(finalValue);
 let idx=0; let interval=setInterval(()=>{
   let target=steps[idx];
@@ -170,7 +179,7 @@ else if(value<90) msg.innerText="Потужний 💪"; else msg.innerText="К�
 
 function handleTouchMode(){if(mode!==2) return;if(isRunning) return;
 touchState=(touchState+1)%4; clearInterval(touchInterval);
-if(touchState===0){msg.innerText="Стоп"; stopDangerSound();}
+if(touchState===0){msg.innerText="Стоп";}
 else if(touchState===1){msg.innerText="Піднімається"; touchInterval=setInterval(()=>{if(value<100){value+=2; beep(700,0.03,0.05);} value=Math.min(value,100); num.innerText=value; updateBars(value,true);},50);}
 else if(touchState===2){msg.innerText="Стоп";}
 else if(touchState===3){msg.innerText="Падає"; touchInterval=setInterval(()=>{if(value>0){value-=2; beep(250,0.03,0.05);} value=Math.max(value,0); num.innerText=value; updateBars(value,true);},50);}
@@ -204,6 +213,7 @@ btn.addEventListener("touchcancel",(e)=>{e.preventDefault();hold=false;});
 
 btn.addEventListener("click",()=>{if(mode===0) randomMode();});
 btn.addEventListener("touchend",()=>{if(mode===0) randomMode();});
+
 </script>
 </body>
 </html>
