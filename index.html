@@ -78,12 +78,13 @@ let highLoop = null;
 let voiceSound = null;
 
 function startHighSound(){
-  if(highLoop) return;
-  // Голос — один раз
+  // Голос — кожного разу заново
+  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; }
   voiceSound = new Audio("sound/2.mp3");
   voiceSound.volume = 0.8;
   voiceSound.play().catch(()=>{});
-  // Фоновий тон — по колу
+  // Фоновий тон — по колу (якщо вже грає не перезапускати)
+  if(highLoop) return;
   function playTone(){
     let osc = audioCtx.createOscillator();
     let gain = audioCtx.createGain();
