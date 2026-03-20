@@ -78,27 +78,26 @@ let highLoop = null;
 let voiceSound = null;
 
 function startHighSound(){
-  // Голос — кожного разу заново
-  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; }
+  if(!highLoop){
+    function playTone(){
+      let osc = audioCtx.createOscillator();
+      let gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 220;
+      osc.type = "sawtooth";
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.5);
+    }
+    playTone();
+    highLoop = setInterval(playTone, 2300);
+  }
+  if(voiceSound){ voiceSound.pause(); voiceSound.currentTime=0; voiceSound=null; }
   voiceSound = new Audio("sound/2.mp3");
   voiceSound.volume = 0.8;
   voiceSound.play().catch(()=>{});
-  // Фоновий тон — по колу (якщо вже грає не перезапускати)
-  if(highLoop) return;
-  function playTone(){
-    let osc = audioCtx.createOscillator();
-    let gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.frequency.value = 220;
-    osc.type = "sawtooth";
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 1.5);
-  }
-  playTone();
-  highLoop = setInterval(playTone, 2300);
 }
 
 function stopHighSound(){
